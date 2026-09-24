@@ -1,2 +1,4 @@
 onlyBuiltDependencies:
   - esbuild
+  - sharp
+  - "@img/sharp-libvips-linux-x64"
