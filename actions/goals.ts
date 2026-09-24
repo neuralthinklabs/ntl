@@ -14,6 +14,9 @@ const contributionSchema = z.object({
   amount: z.coerce.number().positive('Enter an amount greater than 0.'),
   kind: z.enum(['donation', 'time', 'in_kind']).default('donation'),
   note: z.string().max(300).optional(),
+  // Client-generated once per form mount (P0 #5) — same idempotency
+  // pattern as actions/problems.ts.
+  clientRequestId: z.string().uuid('Please reload the page and try again.'),
 })
 
 export async function recordContribution(
@@ -35,22 +38,52 @@ export async function recordContribution(
     amount: formData.get('amount'),
     kind: formData.get('kind') || 'donation',
     note: formData.get('note') || undefined,
+    clientRequestId: formData.get('clientRequestId'),
   })
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input.' }
   }
 
-  const { goalId, goalSlug, amount, kind, note } = parsed.data
+  const { goalId, goalSlug, amount, kind, note, clientRequestId } = parsed.data
+
+  // The goalId/goalSlug pair comes from hidden form fields, so validate
+  // the goal actually exists before touching balances — a stale page or
+  // a tampered request shouldn't be able to write against a bogus id.
+  const goal = await db.query.goals.findFirst({ where: eq(goals.id, goalId) })
+  if (!goal) {
+    return { error: 'This goal no longer exists. Please refresh the page.' }
+  }
+
+  // Idempotent replay guard (P0 #5): if this exact submission already
+  // went through, don't record (or fund) it a second time.
+  const existing = await db.query.contributions.findFirst({
+    where: eq(contributions.clientRequestId, clientRequestId),
+  })
+  if (existing) {
+    return { success: 'Thank you for your contribution!' }
+  }
+
   const amountCents = kind === 'donation' ? Math.round(amount * 100) : null
 
-  await db.insert(contributions).values({
-    userId: user.id,
-    goalId,
-    amountCents: amountCents ?? undefined,
-    kind,
-    note,
-  })
+  const [inserted] = await db
+    .insert(contributions)
+    .values({
+      userId: user.id,
+      goalId,
+      clientRequestId,
+      amountCents: amountCents ?? undefined,
+      kind,
+      note,
+    })
+    .onConflictDoNothing({ target: contributions.clientRequestId })
+    .returning()
+
+  // Lost a race to a concurrent identical request — the other request
+  // already recorded (and funded) this contribution, so don't double it.
+  if (!inserted) {
+    return { success: 'Thank you for your contribution!' }
+  }
 
   if (amountCents) {
     await db

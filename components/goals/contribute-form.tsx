@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { recordContribution } from '@/actions/goals'
 
@@ -10,10 +10,18 @@ const fieldClass =
 export function ContributeForm({ goalId, goalSlug }: { goalId: string; goalSlug: string }) {
   const [state, formAction, pending] = useActionState(recordContribution, null)
 
+  // Generated once per mount so a double-click or a retried request is
+  // recognized server-side as the same contribution, not a new one
+  // (P0 #5). A fresh id is picked up automatically after a successful
+  // submit re-renders this component with a new key upstream, or on a
+  // full page reload.
+  const [clientRequestId] = useState(() => crypto.randomUUID())
+
   return (
     <form action={formAction} className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-start">
       <input type="hidden" name="goalId" value={goalId} />
       <input type="hidden" name="goalSlug" value={goalSlug} />
+      <input type="hidden" name="clientRequestId" value={clientRequestId} />
       <input
         name="amount"
         type="number"

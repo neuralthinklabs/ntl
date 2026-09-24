@@ -45,6 +45,11 @@ export default async function MyProblemsPage() {
                   </div>
                   <StatusBadge status={p.status} />
                 </div>
+                {p.attachmentsIncomplete && (
+                  <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
+                    One or more attachments failed to upload with this submission.
+                  </p>
+                )}
                 <p className="mt-3 line-clamp-2 text-sm text-slate-600">{p.description}</p>
                 {p.adminNotes && (
                   <p className="mt-3 rounded-lg bg-slate-50 p-3 text-xs text-slate-500">

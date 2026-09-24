@@ -1,9 +1,10 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useMemo, useState } from 'react'
 import { ArrowRight, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { submitProblem } from '@/actions/problems'
+import { MAX_FILE_SIZE_BYTES, MAX_FILES, formatBytes } from '@/lib/upload-limits'
 
 const steps = ['Details', 'Context', 'Evidence', 'Review']
 
@@ -13,10 +14,39 @@ const fieldClass =
 export function ProblemForm({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [step, setStep] = useState(0)
   const [description, setDescription] = useState('')
+  const [fileError, setFileError] = useState<string | null>(null)
   const [state, formAction, pending] = useActionState(submitProblem, null)
+
+  // Generated once per mount (i.e. once per form load), not per submit —
+  // this is what lets the server dedupe a double-click or a retried
+  // request as the *same* submission instead of creating two problems.
+  const [clientRequestId] = useState(() => crypto.randomUUID())
+
+  const canSubmit = useMemo(() => !fileError, [fileError])
+
+  function validateFiles(fileList: FileList | null) {
+    if (!fileList || fileList.length === 0) {
+      setFileError(null)
+      return
+    }
+    if (fileList.length > MAX_FILES) {
+      setFileError(`Please attach at most ${MAX_FILES} files (you selected ${fileList.length}).`)
+      return
+    }
+    const tooBig = Array.from(fileList).find((f) => f.size > MAX_FILE_SIZE_BYTES)
+    if (tooBig) {
+      setFileError(
+        `"${tooBig.name}" is ${formatBytes(tooBig.size)}, which is larger than the ${formatBytes(MAX_FILE_SIZE_BYTES)} limit.`,
+      )
+      return
+    }
+    setFileError(null)
+  }
 
   return (
     <form action={formAction} className="grid gap-8 lg:grid-cols-[220px_1fr]">
+      <input type="hidden" name="clientRequestId" value={clientRequestId} />
+
       <nav aria-label="Progress" className="flex flex-col gap-1">
         {steps.map((label, i) => {
           const s = i < step ? 'done' : i === step ? 'current' : 'upcoming'
@@ -101,14 +131,18 @@ export function ProblemForm({ isLoggedIn }: { isLoggedIn: boolean }) {
             <Field label="Supporting evidence">
               <textarea name="evidenceNotes" rows={4} className={cn(fieldClass, 'resize-none')} placeholder="Links to research, data, articles or reports…" />
             </Field>
-            <Field label="Attachments (up to 5 files, 10MB each)">
+            <Field label={`Attachments (up to ${MAX_FILES} files, ${formatBytes(MAX_FILE_SIZE_BYTES)} each)`}>
               <input
                 name="files"
                 type="file"
                 multiple
                 accept="image/*,.pdf,.doc,.docx"
+                onChange={(e) => validateFiles(e.target.files)}
                 className="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-brand/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-brand-muted"
               />
+              {fileError && (
+                <p className="mt-1.5 text-xs text-red-600">{fileError}</p>
+              )}
             </Field>
           </div>
         </div>
@@ -122,6 +156,11 @@ export function ProblemForm({ isLoggedIn }: { isLoggedIn: boolean }) {
             <div className="rounded-lg bg-brand/5 p-4 text-sm text-brand-muted ring-1 ring-inset ring-brand/15">
               Your problem will be visible to the Neural Think Labs community once approved.
             </div>
+            {fileError && (
+              <p className="rounded-lg bg-red-50 px-3.5 py-2.5 text-sm text-red-600">
+                Fix the attachment issue on the Evidence step before submitting: {fileError}
+              </p>
+            )}
             {state?.error && (
               <p className="rounded-lg bg-red-50 px-3.5 py-2.5 text-sm text-red-600">{state.error}</p>
             )}
@@ -140,7 +179,7 @@ export function ProblemForm({ isLoggedIn }: { isLoggedIn: boolean }) {
           {step === steps.length - 1 ? (
             <button
               type="submit"
-              disabled={pending || !isLoggedIn}
+              disabled={pending || !isLoggedIn || !canSubmit}
               className="inline-flex items-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand/90 disabled:opacity-60"
             >
               {pending ? 'Submitting…' : 'Submit problem'}

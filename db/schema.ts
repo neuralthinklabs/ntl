@@ -86,6 +86,11 @@ export const problems = pgTable('problems', {
   submittedBy: uuid('submitted_by')
     .notNull()
     .references(() => profiles.id, { onDelete: 'cascade' }),
+  // Idempotency key generated client-side once per form load (P0 #5). A
+  // unique constraint lets `onConflictDoNothing` silently no-op a
+  // duplicate submit (double-click, retried request, etc.) instead of
+  // creating a second row.
+  clientRequestId: uuid('client_request_id').unique(),
   title: text('title').notNull(),
   category: text('category'),
   location: text('location'),
@@ -93,6 +98,13 @@ export const problems = pgTable('problems', {
   context: text('context'),
   evidenceNotes: text('evidence_notes'),
   status: problemStatusEnum('status').notNull().default('submitted'),
+  // Set when one or more attachments failed to upload after the problem
+  // row itself was created (P0 #3), so admins/users can see the
+  // submission is incomplete rather than assuming every listed file made
+  // it to storage.
+  attachmentsIncomplete: boolean('attachments_incomplete')
+    .notNull()
+    .default(false),
   adminNotes: text('admin_notes'),
   reviewedBy: uuid('reviewed_by').references(() => profiles.id),
   reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
@@ -237,6 +249,9 @@ export const contributions = pgTable('contributions', {
   goalId: uuid('goal_id').references(() => goals.id, {
     onDelete: 'set null',
   }),
+  // Idempotency key generated client-side once per form mount (P0 #5) —
+  // see `problems.clientRequestId` for the same pattern.
+  clientRequestId: uuid('client_request_id').unique(),
   amountCents: integer('amount_cents'),
   kind: text('kind').notNull().default('donation'), // donation | time | in_kind
   note: text('note'),

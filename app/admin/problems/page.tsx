@@ -1,26 +1,20 @@
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
-import { desc, eq } from 'drizzle-orm'
+import { desc } from 'drizzle-orm'
 import { SiteShell } from '@/components/site/site-shell'
 import { PageHero } from '@/components/site/page-hero'
-import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
-import { problems, profiles } from '@/db/schema'
+import { problems } from '@/db/schema'
 import { AdminProblemRow } from '@/components/admin/admin-problem-row'
+import { requireAdminPage } from '@/lib/auth/admin'
 
 export const metadata: Metadata = {
   title: 'Review Problems — Admin',
 }
 
 export default async function AdminProblemsPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/login?next=/admin/problems')
-
-  const profile = await db.query.profiles.findFirst({ where: eq(profiles.id, user.id) })
-  if (profile?.role !== 'admin') redirect('/dashboard')
+  // Centralized admin check (P0 #4) — redirects to login or /dashboard
+  // as appropriate instead of re-implementing the role check here.
+  await requireAdminPage('/admin/problems')
 
   const all = await db.query.problems.findMany({
     orderBy: [desc(problems.createdAt)],
