@@ -5,17 +5,19 @@ import { eq, sql } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
-import { goals, contributions, activityRecords, profiles } from '@/db/schema'
+import { goals, contributions } from '@/db/schema'
+import { awardPoints } from '@/lib/points'
 import type { ActionState } from './auth'
 
 const contributionSchema = z.object({
   goalId: z.string().uuid(),
+  // Still accepted from the hidden form field for the idempotent-replay
+  // fast path below, but never trusted for anything that touches the DB —
+  // see the note near `goal.slug` further down (P1 #10).
   goalSlug: z.string(),
   amount: z.coerce.number().positive('Enter an amount greater than 0.'),
   kind: z.enum(['donation', 'time', 'in_kind']).default('donation'),
   note: z.string().max(300).optional(),
-  // Client-generated once per form mount (P0 #5) — same idempotency
-  // pattern as actions/problems.ts.
   clientRequestId: z.string().uuid('Please reload the page and try again.'),
 })
 
@@ -45,18 +47,20 @@ export async function recordContribution(
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input.' }
   }
 
-  const { goalId, goalSlug, amount, kind, note, clientRequestId } = parsed.data
+  const { goalId, amount, kind, note, clientRequestId } = parsed.data
 
-  // The goalId/goalSlug pair comes from hidden form fields, so validate
-  // the goal actually exists before touching balances — a stale page or
-  // a tampered request shouldn't be able to write against a bogus id.
+  // P1 #10: `goalId` is validated as a real, existing goal here (was
+  // already the case) — the fix is that we now also stop trusting the
+  // posted `goalSlug` for anything beyond the idempotent-replay success
+  // message below. Every DB write and every `revalidatePath` call uses
+  // `goal.slug` fetched from this row, not the client-supplied string, so
+  // a tampered/stale hidden field can't point a write at one goal while
+  // revalidating (or reporting success for) a different page.
   const goal = await db.query.goals.findFirst({ where: eq(goals.id, goalId) })
   if (!goal) {
     return { error: 'This goal no longer exists. Please refresh the page.' }
   }
 
-  // Idempotent replay guard (P0 #5): if this exact submission already
-  // went through, don't record (or fund) it a second time.
   const existing = await db.query.contributions.findFirst({
     where: eq(contributions.clientRequestId, clientRequestId),
   })
@@ -70,7 +74,7 @@ export async function recordContribution(
     .insert(contributions)
     .values({
       userId: user.id,
-      goalId,
+      goalId: goal.id,
       clientRequestId,
       amountCents: amountCents ?? undefined,
       kind,
@@ -79,8 +83,6 @@ export async function recordContribution(
     .onConflictDoNothing({ target: contributions.clientRequestId })
     .returning()
 
-  // Lost a race to a concurrent identical request — the other request
-  // already recorded (and funded) this contribution, so don't double it.
   if (!inserted) {
     return { success: 'Thank you for your contribution!' }
   }
@@ -89,27 +91,23 @@ export async function recordContribution(
     await db
       .update(goals)
       .set({ fundingRaisedCents: sql`${goals.fundingRaisedCents} + ${amountCents}` })
-      .where(eq(goals.id, goalId))
+      .where(eq(goals.id, goal.id))
   }
 
-  await db.insert(activityRecords).values({
+  // P1 #9: centralized — see lib/points.ts.
+  await awardPoints({
     userId: user.id,
+    points: 15,
     type: 'goal_supported',
     title: `Supported a goal`,
     meta:
       kind === 'donation'
         ? `Contributed $${amount.toFixed(2)} · +15 pts`
         : `Pledged ${kind.replace('_', ' ')} · +15 pts`,
-    pointsDelta: 15,
-    relatedId: goalId,
+    relatedId: goal.id,
   })
 
-  await db
-    .update(profiles)
-    .set({ points: sql`${profiles.points} + 15` })
-    .where(eq(profiles.id, user.id))
-
-  revalidatePath(`/goals/${goalSlug}`)
+  revalidatePath(`/goals/${goal.slug}`)
   revalidatePath('/support')
   revalidatePath('/dashboard')
 

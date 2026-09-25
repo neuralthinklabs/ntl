@@ -1,25 +1,39 @@
 import type { Metadata } from 'next'
-import { desc } from 'drizzle-orm'
+import { desc, count } from 'drizzle-orm'
 import { SiteShell } from '@/components/site/site-shell'
 import { PageHero } from '@/components/site/page-hero'
+import { Pager } from '@/components/site/pager'
 import { db } from '@/db'
 import { problems } from '@/db/schema'
 import { AdminProblemRow } from '@/components/admin/admin-problem-row'
 import { requireAdminPage } from '@/lib/auth/admin'
+import { parsePage, totalPages } from '@/lib/pagination'
 
 export const metadata: Metadata = {
   title: 'Review Problems — Admin',
 }
 
-export default async function AdminProblemsPage() {
-  // Centralized admin check (P0 #4) — redirects to login or /dashboard
-  // as appropriate instead of re-implementing the role check here.
+export default async function AdminProblemsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>
+}) {
   await requireAdminPage('/admin/problems')
 
-  const all = await db.query.problems.findMany({
-    orderBy: [desc(problems.createdAt)],
-    with: { submitter: true },
-  })
+  const { page, limit, offset } = parsePage(await searchParams)
+
+  // P1 #11: this list has no natural upper bound (every submission ever
+  // made) — paginate it instead of `findMany()` with no limit, which used
+  // to load and render the entire table on every visit.
+  const [all, [{ value: totalCount }]] = await Promise.all([
+    db.query.problems.findMany({
+      orderBy: [desc(problems.createdAt)],
+      with: { submitter: true },
+      limit,
+      offset,
+    }),
+    db.select({ value: count() }).from(problems),
+  ])
 
   return (
     <SiteShell>
@@ -44,6 +58,7 @@ export default async function AdminProblemsPage() {
             </p>
           )}
         </div>
+        <Pager page={page} totalPages={totalPages(totalCount, limit)} basePath="/admin/problems" />
       </div>
     </SiteShell>
   )

@@ -6,10 +6,11 @@ import { revalidatePath } from 'next/cache'
 import { eq, sql } from 'drizzle-orm'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
-import { problems, problemAttachments, activityRecords, profiles } from '@/db/schema'
+import { problems, problemAttachments, profiles } from '@/db/schema'
 import { sendEmail, problemConfirmationEmail } from '@/lib/email'
 import { requireAdminAction } from '@/lib/auth/admin'
 import { MAX_FILE_SIZE_BYTES, MAX_FILES } from '@/lib/upload-limits'
+import { awardPoints } from '@/lib/points'
 import type { ActionState } from './auth'
 
 const problemSchema = z.object({
@@ -19,9 +20,6 @@ const problemSchema = z.object({
   location: z.string().optional(),
   context: z.string().optional(),
   evidenceNotes: z.string().optional(),
-  // Client-generated once per form load — see components/problems/problem-form.tsx.
-  // Lets us treat a double submit / retried request as one submission
-  // instead of creating duplicates (P0 #5).
   clientRequestId: z.string().uuid('Please reload the page and try again.'),
 })
 
@@ -67,10 +65,6 @@ export async function submitProblem(
     }
   }
 
-  // Idempotent replay: if this exact client-generated request already
-  // produced a problem (double-click, retried network request, back
-  // button + resubmit), send the user straight to that confirmation
-  // instead of creating a second problem (P0 #5).
   const existing = await db.query.problems.findFirst({
     where: eq(problems.clientRequestId, parsed.data.clientRequestId),
   })
@@ -80,7 +74,6 @@ export async function submitProblem(
     )
   }
 
-  // Ensure a profile row exists (in case the DB trigger / signup path missed it).
   await db
     .insert(profiles)
     .values({ id: user.id, email: user.email ?? '' })
@@ -101,9 +94,6 @@ export async function submitProblem(
     .onConflictDoNothing({ target: problems.clientRequestId })
     .returning()
 
-  // Lost the race to a concurrent identical request — fetch what the
-  // other request created and redirect there rather than proceeding with
-  // a `problem` we don't actually have.
   if (!problem) {
     const winner = await db.query.problems.findFirst({
       where: eq(problems.clientRequestId, parsed.data.clientRequestId),
@@ -116,12 +106,6 @@ export async function submitProblem(
     return { error: 'Something went wrong submitting your problem. Please try again.' }
   }
 
-  // Upload attachments to Supabase Storage under a per-user, per-problem
-  // path. A failed upload does NOT fail the whole submission — the
-  // problem text itself is still valuable and the user shouldn't lose it
-  // — but we track failures and flag the problem as incomplete so nobody
-  // (user, admin, or the confirmation page) is told the submission fully
-  // succeeded when it didn't (P0 #3).
   const failedFiles: string[] = []
   for (const file of files) {
     const path = `${user.id}/${problem.id}/${crypto.randomUUID()}-${file.name}`
@@ -156,21 +140,17 @@ export async function submitProblem(
       .where(eq(problems.id, problem.id))
   }
 
-  await db.insert(activityRecords).values({
+  // P1 #9: centralized — see lib/points.ts.
+  await awardPoints({
     userId: user.id,
+    points: 25,
     type: 'problem_submitted',
     title: `Submitted: ${parsed.data.title}`,
     meta: attachmentsIncomplete
       ? 'Problem submitted (some attachments failed) · +25 pts'
       : 'Problem submitted · +25 pts',
-    pointsDelta: 25,
     relatedId: problem.id,
   })
-
-  await db
-    .update(profiles)
-    .set({ points: sql`${profiles.points} + 25` })
-    .where(eq(profiles.id, user.id))
 
   if (user.email) {
     await sendEmail({
@@ -194,7 +174,6 @@ export async function updateProblemStatus(
   status: 'submitted' | 'in_review' | 'accepted' | 'in_progress' | 'resolved' | 'declined',
   adminNotes?: string,
 ) {
-  // Centralized admin check (P0 #4) — throws if not an authenticated admin.
   const { user } = await requireAdminAction()
 
   await db

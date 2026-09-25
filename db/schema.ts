@@ -9,6 +9,7 @@ import {
   boolean,
   jsonb,
   primaryKey,
+  index,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
@@ -86,10 +87,6 @@ export const problems = pgTable('problems', {
   submittedBy: uuid('submitted_by')
     .notNull()
     .references(() => profiles.id, { onDelete: 'cascade' }),
-  // Idempotency key generated client-side once per form load (P0 #5). A
-  // unique constraint lets `onConflictDoNothing` silently no-op a
-  // duplicate submit (double-click, retried request, etc.) instead of
-  // creating a second row.
   clientRequestId: uuid('client_request_id').unique(),
   title: text('title').notNull(),
   category: text('category'),
@@ -98,10 +95,6 @@ export const problems = pgTable('problems', {
   context: text('context'),
   evidenceNotes: text('evidence_notes'),
   status: problemStatusEnum('status').notNull().default('submitted'),
-  // Set when one or more attachments failed to upload after the problem
-  // row itself was created (P0 #3), so admins/users can see the
-  // submission is incomplete rather than assuming every listed file made
-  // it to storage.
   attachmentsIncomplete: boolean('attachments_incomplete')
     .notNull()
     .default(false),
@@ -121,7 +114,7 @@ export const problemAttachments = pgTable('problem_attachments', {
   problemId: uuid('problem_id')
     .notNull()
     .references(() => problems.id, { onDelete: 'cascade' }),
-  storagePath: text('storage_path').notNull(), // path within the `problem-attachments` bucket
+  storagePath: text('storage_path').notNull(),
   fileName: text('file_name').notNull(),
   fileType: text('file_type'),
   fileSize: integer('file_size'),
@@ -228,6 +221,10 @@ export const stories = pgTable('stories', {
   title: text('title').notNull(),
   excerpt: text('excerpt'),
   body: text('body'),
+  // P2 #15: added so /stories can drive the existing category filter pills
+  // (Project Stories / Research / News / Education) from real data instead
+  // of hardcoding "News" for every row. See supabase/migrations/0003_p1_fixes.sql.
+  category: text('category'),
   coverImage: text('cover_image'),
   authorId: uuid('author_id').references(() => profiles.id),
   publishedAt: timestamp('published_at', { withTimezone: true }),
@@ -237,8 +234,7 @@ export const stories = pgTable('stories', {
 })
 
 // ---------------------------------------------------------------------------
-// Contributions (money / time pledged toward a goal, recorded manually or
-// via a future payments integration)
+// Contributions
 // ---------------------------------------------------------------------------
 
 export const contributions = pgTable('contributions', {
@@ -249,11 +245,9 @@ export const contributions = pgTable('contributions', {
   goalId: uuid('goal_id').references(() => goals.id, {
     onDelete: 'set null',
   }),
-  // Idempotency key generated client-side once per form mount (P0 #5) —
-  // see `problems.clientRequestId` for the same pattern.
   clientRequestId: uuid('client_request_id').unique(),
   amountCents: integer('amount_cents'),
-  kind: text('kind').notNull().default('donation'), // donation | time | in_kind
+  kind: text('kind').notNull().default('donation'),
   note: text('note'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
@@ -269,7 +263,7 @@ export const achievements = pgTable('achievements', {
   slug: text('slug').notNull().unique(),
   title: text('title').notNull(),
   description: text('description'),
-  icon: text('icon'), // lucide-react icon name
+  icon: text('icon'),
   pointsAwarded: integer('points_awarded').notNull().default(0),
 })
 
@@ -292,7 +286,7 @@ export const userAchievements = pgTable(
 )
 
 // ---------------------------------------------------------------------------
-// Activity feed (drives the dashboard "Recent Activity" list + point log)
+// Activity feed
 // ---------------------------------------------------------------------------
 
 export const activityRecords = pgTable('activity_records', {
@@ -304,7 +298,7 @@ export const activityRecords = pgTable('activity_records', {
   title: text('title').notNull(),
   meta: text('meta'),
   pointsDelta: integer('points_delta').notNull().default(0),
-  relatedId: uuid('related_id'), // loosely-typed pointer to problem/event/goal id
+  relatedId: uuid('related_id'),
   metadata: jsonb('metadata'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
@@ -325,6 +319,31 @@ export const contactEnquiries = pgTable('contact_enquiries', {
     .notNull()
     .defaultNow(),
 })
+
+// ---------------------------------------------------------------------------
+// P1 #6: auth rate limiting. A row per attempt (signup / login /
+// reset-password / resend-verification); `lib/rate-limit.ts` counts rows
+// within a trailing window per identifier ("<ip>:<email>") and opportunistically
+// deletes old rows. Indexed on (identifier, createdAt) since every query
+// filters on both.
+// ---------------------------------------------------------------------------
+
+export const authAttempts = pgTable(
+  'auth_attempts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    identifier: text('identifier').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    identifierCreatedAtIdx: index('auth_attempts_identifier_created_at_idx').on(
+      t.identifier,
+      t.createdAt,
+    ),
+  }),
+)
 
 // ---------------------------------------------------------------------------
 // Relations (used for Drizzle's relational query API)

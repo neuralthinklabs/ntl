@@ -34,11 +34,15 @@ export default async function LoginPage({
             { name: 'password', label: 'Password', type: 'password', autoComplete: 'current-password' },
           ]}
           footer={
-            <div className="flex items-center justify-between text-sm text-slate-500">
-              <span>
-                New here? <AuthLink href="/auth/signup">Sign up</AuthLink>
-              </span>
-              <AuthLink href="/auth/reset-password">Forgot password?</AuthLink>
+            <div className="flex flex-col gap-2 text-sm text-slate-500">
+              <div className="flex items-center justify-between">
+                <span>
+                  New here? <AuthLink href="/auth/signup">Sign up</AuthLink>
+                </span>
+                <AuthLink href="/auth/reset-password">Forgot password?</AuthLink>
+              </div>
+              {/* P2 #18: resendVerificationEmail now has a caller. */}
+              <AuthLink href="/auth/resend">Didn&apos;t get a verification email?</AuthLink>
             </div>
           }
         />
