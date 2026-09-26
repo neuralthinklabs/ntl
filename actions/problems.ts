@@ -10,6 +10,7 @@ import { problems, problemAttachments, profiles } from '@/db/schema'
 import { sendEmail, problemConfirmationEmail } from '@/lib/email'
 import { requireAdminAction } from '@/lib/auth/admin'
 import { MAX_FILE_SIZE_BYTES, MAX_FILES } from '@/lib/upload-limits'
+import { hasValidFileSignature } from '@/lib/file-signature'
 import { awardPoints } from '@/lib/points'
 import type { ActionState } from './auth'
 
@@ -62,6 +63,16 @@ export async function submitProblem(
   for (const f of files) {
     if (f.size > MAX_FILE_SIZE_BYTES) {
       return { error: `"${f.name}" is larger than the limit.` }
+    }
+  }
+  // Verify actual file content, not just the declared MIME type/extension
+  // (both of which the browser sends and which are trivially spoofable —
+  // see lib/file-signature.ts).
+  for (const f of files) {
+    if (!(await hasValidFileSignature(f))) {
+      return {
+        error: `"${f.name}" doesn't look like a supported file. Please upload an image, PDF, or Word document.`,
+      }
     }
   }
 

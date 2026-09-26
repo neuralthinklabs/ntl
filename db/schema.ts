@@ -56,6 +56,25 @@ export const activityTypeEnum = pgEnum('activity_type', [
   'goal_supported',
 ])
 
+// P2 #15 follow-up: portfolio.ts / /portfolio previously stayed on
+// lib/data.ts mock data even after goals, events, and stories moved to
+// real tables. These two enums + the portfolioItems table below bring it
+// in line with that same pattern — see lib/portfolio.ts.
+export const portfolioTypeEnum = pgEnum('portfolio_type', [
+  'Product',
+  'Service',
+  'Venture',
+  'System',
+  'Publication',
+])
+
+export const portfolioStatusEnum = pgEnum('portfolio_status', [
+  'Active',
+  'In Progress',
+  'Planned',
+  'Completed',
+])
+
 // ---------------------------------------------------------------------------
 // Users & profiles
 // profiles.id === Supabase auth.users.id (the source of truth for auth lives
@@ -229,6 +248,25 @@ export const stories = pgTable('stories', {
   authorId: uuid('author_id').references(() => profiles.id),
   publishedAt: timestamp('published_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+})
+
+// ---------------------------------------------------------------------------
+// Portfolio
+// ---------------------------------------------------------------------------
+
+export const portfolioItems = pgTable('portfolio_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  type: portfolioTypeEnum('type').notNull(),
+  status: portfolioStatusEnum('status').notNull().default('Planned'),
+  description: text('description').notNull(),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
 })

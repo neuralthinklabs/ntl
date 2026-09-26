@@ -11,7 +11,7 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react'
-import { portfolio, type PortfolioType } from '@/lib/data'
+import type { PortfolioType } from '@/lib/data'
 import { StatusBadge } from '@/components/site/ui'
 import { cn } from '@/lib/utils'
 
@@ -40,15 +40,27 @@ function statusTone(status: string) {
   return 'planned' as const
 }
 
-export function PortfolioList() {
+// P2 follow-up: `portfolio` used to be imported directly from lib/data.ts
+// (static mock data). It's now passed in as `items`, fetched server-side
+// from the real `portfolio_items` table by app/portfolio/page.tsx via
+// lib/portfolio.ts — this component no longer knows or cares where the
+// data came from.
+export type PortfolioListItem = {
+  name: string
+  type: PortfolioType
+  status: string
+  description: string
+}
+
+export function PortfolioList({ items }: { items: PortfolioListItem[] }) {
   const [active, setActive] = useState<'All' | PortfolioType>('All')
 
-  const items = useMemo(
+  const filtered = useMemo(
     () =>
       active === 'All'
-        ? portfolio
-        : portfolio.filter((p) => p.type === active),
-    [active],
+        ? items
+        : items.filter((p) => p.type === active),
+    [active, items],
   )
 
   return (
@@ -72,7 +84,7 @@ export function PortfolioList() {
       </div>
 
       <div className="mt-8 flex flex-col gap-3">
-        {items.map((item) => {
+        {filtered.map((item) => {
           const Icon = icons[item.name] ?? Boxes
           return (
             <article

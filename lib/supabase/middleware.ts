@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { fetchIsAdminRole } from '@/lib/auth/role-check'
 
 const PROTECTED_PREFIXES = ['/dashboard', '/profile', '/problems/mine']
 const ADMIN_PREFIXES = ['/admin']
@@ -46,13 +47,12 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (needsAdmin && user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+    // See lib/auth/role-check.ts — this is the same check
+    // lib/auth/admin.ts uses for pages/Server Actions, kept in one place
+    // so the two runtimes (edge here, Node there) can't drift apart.
+    const isAdmin = await fetchIsAdminRole(supabase, user.id)
 
-    if (profile?.role !== 'admin') {
+    if (!isAdmin) {
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
       return NextResponse.redirect(url)

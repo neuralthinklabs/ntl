@@ -9,7 +9,9 @@ import {
   LayoutDashboard,
   ListChecks,
   LogOut,
+  Mail,
   Settings,
+  ShieldCheck,
   Sparkles,
   Trophy,
   User,
@@ -25,8 +27,16 @@ const nav = [
   { label: 'Events', icon: CalendarDays, href: '/events' },
   { label: 'Learning', icon: BookOpen, href: '/portfolio' },
   { label: 'Contributions', icon: HandHeart, href: '/support' },
-  { label: 'Achievements', icon: Award, href: '/dashboard' },
+  // Points at the Achievements stat card below (id="achievements") rather
+  // than routing to a page that doesn't exist yet — previously this and
+  // "Settings" both silently pointed at other pages and read as broken.
+  { label: 'Achievements', icon: Award, href: '/dashboard#achievements' },
   { label: 'Settings', icon: Settings, href: '/profile' },
+]
+
+const adminNav = [
+  { label: 'Review Problems', icon: ShieldCheck, href: '/admin/problems' },
+  { label: 'Review Contact', icon: Mail, href: '/admin/contact' },
 ]
 
 export type ActivityItem = {
@@ -44,6 +54,7 @@ export function Dashboard({
   eventsAttended,
   achievementsCount,
   activity,
+  isAdmin = false,
 }: {
   name: string
   points: number
@@ -51,6 +62,7 @@ export function Dashboard({
   eventsAttended: number
   achievementsCount: number
   activity: ActivityItem[]
+  isAdmin?: boolean
 }) {
   const [active, setActive] = useState('Dashboard')
 
@@ -115,6 +127,24 @@ export function Dashboard({
               </button>
             </form>
           </nav>
+
+          {isAdmin && (
+            <nav className="flex flex-col gap-1 border-t border-slate-200 pt-4">
+              <p className="px-3 pb-1 text-xs font-medium uppercase tracking-wide text-slate-400">
+                Admin
+              </p>
+              {adminNav.map((n) => (
+                <Link
+                  key={n.label}
+                  href={n.href}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-ink"
+                >
+                  <n.icon className="size-4 text-slate-400" />
+                  {n.label}
+                </Link>
+              ))}
+            </nav>
+          )}
         </aside>
 
         <main>
@@ -131,7 +161,8 @@ export function Dashboard({
             {stats.map((s) => (
               <div
                 key={s.label}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                id={s.label === 'Achievements' ? 'achievements' : undefined}
+                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm scroll-mt-24"
               >
                 <span className="inline-flex size-9 items-center justify-center rounded-lg bg-brand/10 text-brand-muted">
                   <s.icon className="size-4" />

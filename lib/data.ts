@@ -7,6 +7,12 @@ export type PortfolioType =
 
 export type Status = 'Active' | 'In Progress' | 'Planned' | 'Completed'
 
+// NOTE: no longer used by app/portfolio/page.tsx, which now reads from the
+// real `portfolio_items` table via lib/portfolio.ts (see
+// supabase/migrations/0004_p2_admin_contact_and_portfolio.sql, which seeds
+// that table with these exact rows). Kept here only as a reference/fixture
+// for local dev or tests that don't have a DB handy — don't wire it back
+// into the live page.
 export const portfolio: {
   name: string
   type: PortfolioType

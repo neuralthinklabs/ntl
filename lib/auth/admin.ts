@@ -8,15 +8,14 @@ import { profiles } from '@/db/schema'
  * NOTE on middleware: `lib/supabase/middleware.ts` (`updateSession`) runs
  * in the Edge middleware runtime, which can't use the `postgres` /
  * Drizzle client these helpers depend on (it needs Node APIs). Its admin
- * check there is intentionally a lightweight, separate Supabase query —
- * treat this file as the canonical check for pages and Server Actions,
- * and keep middleware's check in sync with it if the authorization rule
- * ever changes (currently: `profiles.role === 'admin'`).
+ * check now calls `fetchIsAdminRole` from `lib/auth/role-check.ts` — the
+ * same underlying `profiles.role === 'admin'` rule this file's `isAdmin()`
+ * enforces via Drizzle. If that rule ever changes, update
+ * `lib/auth/role-check.ts` and this file together (there is intentionally
+ * no way to share the actual DB client across the two runtimes, only the
+ * rule).
  *
- * Single source of truth for "is this user an admin". Every place that
- * needs to gate on admin status (middleware, page loaders, server
- * actions) should go through one of the two helpers below instead of
- * re-implementing the `profiles.role === 'admin'` check inline.
+ * Treat this file as the canonical check for pages and Server Actions.
  */
 
 export async function getCurrentUserAndProfile() {
