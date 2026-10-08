@@ -39,11 +39,10 @@ export default async function ProblemsPage() {
               </p>
             </div>
             
-              <href={problemFormUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-brand px-5 py-3 text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand/90"
-            />
+            < a href={problemFormUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-brand px-5 py-3 text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand/90"
               Open Google Form <ArrowRight className="size-4" />
             </a>
           </div>
