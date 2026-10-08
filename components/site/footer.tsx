@@ -4,6 +4,7 @@ import { brandSocials } from './brand-icons'
 
 const footerLinks = [
   { href: '/', label: 'Home' },
+  { href: '/ntldgs', label: 'The 12 Goals' },
   { href: '/portfolio', label: 'Portfolio' },
   { href: '/events', label: 'Events' },
   { href: '/stories', label: 'Stories' },
