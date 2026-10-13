@@ -63,4 +63,4 @@ export function getStoryCategories(items: StoryCardData[]) {
   return ['All', ...Array.from(new Set(items.map((s) => s.category)))]
 }
 
-export const STORY_CATEGORIES = ['Blog', 'Project Stories', 'Research', 'News', 'Education'] as const
+export { STORY_CATEGORIES } from './story-categories'

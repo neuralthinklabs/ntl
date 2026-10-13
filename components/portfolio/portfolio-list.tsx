@@ -3,9 +3,9 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, BarChart3, BookOpen, Boxes, Droplets, GraduationCap, Users, type LucideIcon } from 'lucide-react'
-import { PORTFOLIO_TYPES, type PortfolioType } from '@/lib/portfolio'
 import { StatusBadge } from '@/components/site/ui'
 import { cn } from '@/lib/utils'
+import { PORTFOLIO_TYPES, type PortfolioType } from '@/lib/portfolio-constants'
 
 const filters: ('All' | PortfolioType)[] = ['All', ...PORTFOLIO_TYPES]
 

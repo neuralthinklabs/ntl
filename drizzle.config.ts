@@ -1,5 +1,11 @@
-import 'dotenv/config'
+import dotenv from 'dotenv'
+import path from 'path'
 import { defineConfig } from 'drizzle-kit'
+
+// Force-load Next.js's .env.local file explicitly
+dotenv.config({
+  path: path.resolve(process.cwd(), '.env.local'),
+})
 
 // The SQL files in supabase/migrations are the single source of truth for the
 // database (they also carry RLS policies, triggers and storage rules that

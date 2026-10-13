@@ -1,9 +1,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { safeNext } from '../lib/safe-redirect.ts'
-import { slugify } from '../lib/slug.ts'
-import { zonedLocalToDate, dateToZonedLocal, isValidTimeZone } from '../lib/tz.ts'
-import { hasValidSignatureBytes } from '../lib/file-signature.ts'
+import { safeNext } from '../lib/safe-redirect'
+import { slugify } from '../lib/slug'
+import { zonedLocalToDate, dateToZonedLocal, isValidTimeZone } from '../lib/tz'
+import { hasValidSignatureBytes } from '../lib/file-signature'
 
 test('safeNext only allows same-site relative paths', () => {
   assert.equal(safeNext('/dashboard'), '/dashboard')

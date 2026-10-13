@@ -3,9 +3,9 @@
 import { useActionState } from 'react'
 import { savePost } from '@/actions/admin/posts'
 import { goals } from '@/lib/ntldgs'
-import { STORY_CATEGORIES } from '@/lib/stories'
 import { Field, FormMessage, SubmitButton, fieldClass } from './fields'
 import { ImageUpload } from './image-upload'
+import { STORY_CATEGORIES } from '@/lib/story-categories'
 
 export type PostFormValues = {
   id?: string

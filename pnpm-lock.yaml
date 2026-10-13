@@ -133,9 +133,6 @@ importers:
       lucide-react:
         specifier: ^1.16.0
         version: 1.48.0(react@19.3.0)
-      nanoid:
-        specifier: ^5.0.9
-        version: 5.1.16
       next:
         specifier: 16.3.3
         version: 16.3.3(@babel/core@7.29.7)(@types/node@24.13.6)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -151,12 +148,9 @@ importers:
       resend:
         specifier: ^4.0.0
         version: 4.8.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      shadcn:
-        specifier: ^4.11.0
-        version: 4.21.0(typescript@5.7.3)
-      supabase:
-        specifier: ^2.117.0
-        version: 2.117.0
+      server-only:
+        specifier: ^0.0.1
+        version: 0.0.1
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.7.0
@@ -191,6 +185,12 @@ importers:
       postcss:
         specifier: ^8.5
         version: 8.5.28
+      shadcn:
+        specifier: ^4.11.0
+        version: 4.21.0(typescript@5.7.3)
+      supabase:
+        specifier: ^2.117.0
+        version: 2.117.0
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
@@ -2301,11 +2301,6 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  nanoid@5.1.16:
-    resolution: {integrity: sha512-kVrnsrJqMR8+oLJnGEmSWw9BivK5mt7H3FZatVRjrc5wGqFYuBxX1yG7+A7Gi5AefkX6t/oCkizcQgpu0cY1dQ==}
-    engines: {node: ^18 || >=20}
-    hasBin: true
-
   negotiator@1.1.0:
     resolution: {integrity: sha512-NMPBRMJgiQHjbd8phG3Vebdx4kZ1H121rbl5IkMqeOsahptB9BKo/d7oJ3zTXqTgagn2bWlNSXkh0QUGM31RYg==}
     engines: {node: '>=18'}
@@ -2587,6 +2582,9 @@ packages:
   serve-static@2.2.1:
     resolution: {integrity: sha512-xRXBn0pPqQTVQiC8wyQrKs2MOlX24zQ0POGaj0kultvoOCstBQM5yvOhAVSUwOMjQtTvsPWoNCHfPGwaaQJhTw==}
     engines: {node: '>= 18'}
+
+  server-only@0.0.1:
+    resolution: {integrity: sha512-qepMx2JxAa5jjfzxG79yPPq+8BuFToHd1hm7kI+Z4zAq1ftQiP7HcxMhDDItrbtwVeLg/cY2JnKnrcFkmiswNA==}
 
   setprototypeof@1.2.0:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
@@ -4516,8 +4514,6 @@ snapshots:
 
   nanoid@3.3.19: {}
 
-  nanoid@5.1.16: {}
-
   negotiator@1.1.0:
     dependencies:
       content-type: 2.1.0
@@ -4809,6 +4805,8 @@ snapshots:
       send: 1.2.1
     transitivePeerDependencies:
       - supports-color
+
+  server-only@0.0.1: {}
 
   setprototypeof@1.2.0: {}
 

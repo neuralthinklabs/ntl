@@ -2,8 +2,8 @@
 
 import { useActionState } from 'react'
 import { savePortfolioItem } from '@/actions/admin/portfolio'
-import { PORTFOLIO_STATUSES, PORTFOLIO_TYPES } from '@/lib/portfolio'
 import { Field, FormMessage, SubmitButton, fieldClass } from './fields'
+import { PORTFOLIO_STATUSES, PORTFOLIO_TYPES } from '@/lib/portfolio-constants'
 
 export type PortfolioFormValues = {
   id?: string
