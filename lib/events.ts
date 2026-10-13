@@ -1,10 +1,6 @@
-import { asc, desc, gte, lt } from 'drizzle-orm'
+import { and, asc, desc, eq, gte, lt } from 'drizzle-orm'
 import { db } from '@/db'
-import { events } from '@/db/schema'
-
-// P2 #15: /events previously rendered from lib/data.ts mock arrays even
-// though the `events` / `event_registrations` tables already existed in
-// the schema and migration. This queries the real tables instead.
+import { events, eventRegistrations } from '@/db/schema'
 
 export type EventCardData = {
   id: string
@@ -14,26 +10,50 @@ export type EventCardData = {
   title: string
   meta: string
   description: string
+  full: boolean
 }
 
-function formatTime(d: Date) {
-  return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+type EventRow = typeof events.$inferSelect
+
+// Always format in the event's own zone so every visitor sees the same
+// wall-clock time, regardless of where the server or the visitor is.
+function fmt(d: Date, tz: string, opts: Intl.DateTimeFormatOptions) {
+  return new Intl.DateTimeFormat('en-US', { timeZone: tz, ...opts }).format(d)
 }
 
-function toCard(e: typeof events.$inferSelect): EventCardData {
+export function formatEventWhen(e: Pick<EventRow, 'startsAt' | 'endsAt' | 'timezone'>) {
   const start = new Date(e.startsAt)
-  const timeRange = e.endsAt ? `${formatTime(start)} – ${formatTime(new Date(e.endsAt))}` : formatTime(start)
-  const where = e.isOnline ? 'Online' : e.location || 'Location TBA'
+  const date = fmt(start, e.timezone, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+  const t = (d: Date) => fmt(d, e.timezone, { hour: 'numeric', minute: '2-digit' })
+  const zone = fmt(start, e.timezone, { timeZoneName: 'short' }).split(', ').pop()
+  const range = e.endsAt ? `${t(start)} – ${t(new Date(e.endsAt))}` : t(start)
+  return `${date}, ${range} ${zone}`
+}
 
+function toCard(e: EventRow, taken: number): EventCardData {
+  const start = new Date(e.startsAt)
+  const where = e.isOnline ? 'Online' : e.location || 'Location to be announced'
   return {
     id: e.id,
     slug: e.slug,
-    month: start.toLocaleDateString(undefined, { month: 'short' }).toUpperCase(),
-    day: String(start.getDate()),
+    month: fmt(start, e.timezone, { month: 'short' }).toUpperCase(),
+    day: fmt(start, e.timezone, { day: 'numeric' }),
     title: e.title,
-    meta: `${where} · ${timeRange}`,
+    meta: `${where} — ${formatEventWhen(e)}`,
     description: e.description ?? '',
+    full: !!e.capacity && taken >= e.capacity,
   }
+}
+
+async function takenCounts(ids: string[]) {
+  const map = new Map<string, number>()
+  if (!ids.length) return map
+  const rows = await db.query.eventRegistrations.findMany({
+    where: (r, { inArray, and: a }) => a(inArray(r.eventId, ids), inArray(r.status, ['registered', 'attended'])),
+    columns: { eventId: true },
+  })
+  for (const r of rows) map.set(r.eventId, (map.get(r.eventId) ?? 0) + 1)
+  return map
 }
 
 export async function getUpcomingEvents(limit = 20) {
@@ -42,7 +62,8 @@ export async function getUpcomingEvents(limit = 20) {
     orderBy: [asc(events.startsAt)],
     limit,
   })
-  return rows.map(toCard)
+  const taken = await takenCounts(rows.map((r) => r.id))
+  return rows.map((r) => toCard(r, taken.get(r.id) ?? 0))
 }
 
 export async function getPastEvents(limit = 20) {
@@ -51,5 +72,13 @@ export async function getPastEvents(limit = 20) {
     orderBy: [desc(events.startsAt)],
     limit,
   })
-  return rows.map(toCard)
+  return rows.map((r) => toCard(r, 0))
+}
+
+/** Map eventId -> this user's registration status (excluding cancelled). */
+export async function getMyRegistrations(userId: string) {
+  const rows = await db.query.eventRegistrations.findMany({
+    where: and(eq(eventRegistrations.userId, userId)),
+  })
+  return Object.fromEntries(rows.filter((r) => r.status !== 'cancelled').map((r) => [r.eventId, r.status]))
 }

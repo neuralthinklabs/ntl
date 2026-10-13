@@ -1,19 +1,14 @@
-import { sql } from 'drizzle-orm'
-import { eq } from 'drizzle-orm'
+import { sql, eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { profiles, activityRecords, type activityTypeEnum } from '@/db/schema'
 
 type ActivityType = (typeof activityTypeEnum.enumValues)[number]
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
 /**
- * P1 #9: single source of truth for "give a user points and log the
- * activity feed entry." Previously this logic (update profiles.points +
- * insert an activityRecords row) was duplicated between
- * actions/problems.ts and actions/goals.ts, with slightly different shapes
- * — a third caller would have been the second copy/paste divergence.
- *
- * Call this from any server action that awards points instead of writing
- * the two-statement pattern inline.
+ * Single place that grants points and writes the activity-feed row. Pass the
+ * `executor` from inside `db.transaction(async (tx) => ...)` so the points
+ * and the thing that earned them commit (or roll back) together.
  */
 export async function awardPoints(params: {
   userId: string
@@ -22,10 +17,11 @@ export async function awardPoints(params: {
   title: string
   meta?: string
   relatedId?: string
+  executor?: Tx | typeof db
 }) {
-  const { userId, points, type, title, meta, relatedId } = params
+  const { userId, points, type, title, meta, relatedId, executor = db } = params
 
-  await db.insert(activityRecords).values({
+  await executor.insert(activityRecords).values({
     userId,
     type,
     title,
@@ -34,8 +30,10 @@ export async function awardPoints(params: {
     relatedId,
   })
 
-  await db
-    .update(profiles)
-    .set({ points: sql`${profiles.points} + ${points}` })
-    .where(eq(profiles.id, userId))
+  if (points !== 0) {
+    await executor
+      .update(profiles)
+      .set({ points: sql`${profiles.points} + ${points}` })
+      .where(eq(profiles.id, userId))
+  }
 }

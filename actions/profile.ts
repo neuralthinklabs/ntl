@@ -9,14 +9,11 @@ import { profiles } from '@/db/schema'
 import type { ActionState } from './auth'
 
 const profileSchema = z.object({
-  fullName: z.string().min(1, 'Please enter your name.'),
-  bio: z.string().max(500, 'Bio must be 500 characters or fewer.').optional(),
+  fullName: z.string().trim().min(1, 'Please enter your name.').max(120),
+  bio: z.string().trim().max(500, 'Bio must be 500 characters or fewer.'),
 })
 
-export async function updateProfile(
-  _prevState: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
+export async function updateProfile(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const supabase = await createClient()
   const {
     data: { user },
@@ -24,18 +21,17 @@ export async function updateProfile(
   if (!user) return { error: 'You must be logged in.' }
 
   const parsed = profileSchema.safeParse({
-    fullName: formData.get('fullName'),
-    bio: formData.get('bio') || undefined,
+    fullName: formData.get('fullName') ?? '',
+    bio: formData.get('bio') ?? '',
   })
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? 'Invalid input.' }
-  }
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Invalid input.' }
 
   await db
     .update(profiles)
     .set({
       fullName: parsed.data.fullName,
-      bio: parsed.data.bio,
+      // Empty string clears the bio (previously it was silently ignored).
+      bio: parsed.data.bio === '' ? null : parsed.data.bio,
       updatedAt: new Date(),
     })
     .where(eq(profiles.id, user.id))

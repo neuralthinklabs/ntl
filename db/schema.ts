@@ -5,13 +5,15 @@ import {
   text,
   timestamp,
   integer,
-  numeric,
   boolean,
   jsonb,
   primaryKey,
   index,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
+
+// NOTE: supabase/migrations/*.sql is the source of truth for the database.
+// Keep this file in sync by hand when you add a migration.
 
 // ---------------------------------------------------------------------------
 // Enums
@@ -28,11 +30,7 @@ export const problemStatusEnum = pgEnum('problem_status', [
   'declined',
 ])
 
-export const goalStatusEnum = pgEnum('goal_status', [
-  'planned',
-  'in_progress',
-  'completed',
-])
+export const goalStatusEnum = pgEnum('goal_status', ['planned', 'in_progress', 'completed'])
 
 export const milestoneStatusEnum = pgEnum('milestone_status', [
   'upcoming',
@@ -56,10 +54,13 @@ export const activityTypeEnum = pgEnum('activity_type', [
   'goal_supported',
 ])
 
-// P2 #15 follow-up: portfolio.ts / /portfolio previously stayed on
-// lib/data.ts mock data even after goals, events, and stories moved to
-// real tables. These two enums + the portfolioItems table below bring it
-// in line with that same pattern — see lib/portfolio.ts.
+export const contributionStatusEnum = pgEnum('contribution_status', [
+  'pledged',
+  'confirmed',
+  'rejected',
+  'refunded',
+])
+
 export const portfolioTypeEnum = pgEnum('portfolio_type', [
   'Product',
   'Service',
@@ -76,25 +77,19 @@ export const portfolioStatusEnum = pgEnum('portfolio_status', [
 ])
 
 // ---------------------------------------------------------------------------
-// Users & profiles
-// profiles.id === Supabase auth.users.id (the source of truth for auth lives
-// in Supabase Auth; this table holds the app-facing profile + role).
+// Users & profiles (profiles.id === auth.users.id)
 // ---------------------------------------------------------------------------
 
 export const profiles = pgTable('profiles', {
-  id: uuid('id').primaryKey(), // = auth.users.id
+  id: uuid('id').primaryKey(),
   email: text('email').notNull(),
   fullName: text('full_name'),
   avatarUrl: text('avatar_url'),
   bio: text('bio'),
   role: userRoleEnum('role').notNull().default('member'),
   points: integer('points').notNull().default(0),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
 // ---------------------------------------------------------------------------
@@ -109,23 +104,19 @@ export const problems = pgTable('problems', {
   clientRequestId: uuid('client_request_id').unique(),
   title: text('title').notNull(),
   category: text('category'),
+  /** Which of the 12 NTLDGs this problem relates to (slug from lib/ntldgs.ts). */
+  ntldgSlug: text('ntldg_slug'),
   location: text('location'),
   description: text('description').notNull(),
   context: text('context'),
   evidenceNotes: text('evidence_notes'),
   status: problemStatusEnum('status').notNull().default('submitted'),
-  attachmentsIncomplete: boolean('attachments_incomplete')
-    .notNull()
-    .default(false),
+  attachmentsIncomplete: boolean('attachments_incomplete').notNull().default(false),
   adminNotes: text('admin_notes'),
   reviewedBy: uuid('reviewed_by').references(() => profiles.id),
   reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
 export const problemAttachments = pgTable('problem_attachments', {
@@ -137,34 +128,30 @@ export const problemAttachments = pgTable('problem_attachments', {
   fileName: text('file_name').notNull(),
   fileType: text('file_type'),
   fileSize: integer('file_size'),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
 // ---------------------------------------------------------------------------
-// Goals
+// Goals (shown to the public as "campaigns")
 // ---------------------------------------------------------------------------
 
 export const goals = pgTable('goals', {
   id: uuid('id').primaryKey().defaultRandom(),
   slug: text('slug').notNull().unique(),
   title: text('title').notNull(),
+  ntldgSlug: text('ntldg_slug'),
   problemSummary: text('problem_summary'),
   objective: text('objective'),
   responsibleTeam: text('responsible_team'),
   status: goalStatusEnum('status').notNull().default('planned'),
   fundingTargetCents: integer('funding_target_cents').notNull().default(0),
+  /** Only ever changed by an admin confirming a payment (or a manual edit). */
   fundingRaisedCents: integer('funding_raised_cents').notNull().default(0),
   startDate: timestamp('start_date', { withTimezone: true }),
   endDate: timestamp('end_date', { withTimezone: true }),
   heroImage: text('hero_image'),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
 export const goalMilestones = pgTable('goal_milestones', {
@@ -187,9 +174,7 @@ export const goalUpdates = pgTable('goal_updates', {
   authorId: uuid('author_id').references(() => profiles.id),
   title: text('title').notNull(),
   body: text('body').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
 // ---------------------------------------------------------------------------
@@ -203,12 +188,12 @@ export const events = pgTable('events', {
   description: text('description'),
   location: text('location'),
   isOnline: boolean('is_online').notNull().default(false),
+  /** IANA zone the organisers entered the times in, e.g. "Asia/Kolkata". */
+  timezone: text('timezone').notNull().default('UTC'),
   startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
   endsAt: timestamp('ends_at', { withTimezone: true }),
   capacity: integer('capacity'),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
 export const eventRegistrations = pgTable(
@@ -221,9 +206,7 @@ export const eventRegistrations = pgTable(
       .notNull()
       .references(() => profiles.id, { onDelete: 'cascade' }),
     status: registrationStatusEnum('status').notNull().default('registered'),
-    registeredAt: timestamp('registered_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    registeredAt: timestamp('registered_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.eventId, t.userId] }),
@@ -231,7 +214,7 @@ export const eventRegistrations = pgTable(
 )
 
 // ---------------------------------------------------------------------------
-// Stories
+// Stories / blog posts (published_at in the past = live, null = draft)
 // ---------------------------------------------------------------------------
 
 export const stories = pgTable('stories', {
@@ -240,16 +223,13 @@ export const stories = pgTable('stories', {
   title: text('title').notNull(),
   excerpt: text('excerpt'),
   body: text('body'),
-  // P2 #15: added so /stories can drive the existing category filter pills
-  // (Project Stories / Research / News / Education) from real data instead
-  // of hardcoding "News" for every row. See supabase/migrations/0003_p1_fixes.sql.
   category: text('category'),
+  ntldgSlug: text('ntldg_slug'),
   coverImage: text('cover_image'),
   authorId: uuid('author_id').references(() => profiles.id),
   publishedAt: timestamp('published_at', { withTimezone: true }),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
 // ---------------------------------------------------------------------------
@@ -263,37 +243,39 @@ export const portfolioItems = pgTable('portfolio_items', {
   status: portfolioStatusEnum('status').notNull().default('Planned'),
   description: text('description').notNull(),
   sortOrder: integer('sort_order').notNull().default(0),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
 // ---------------------------------------------------------------------------
-// Contributions
+// Contributions (pledges until an admin confirms the payment)
 // ---------------------------------------------------------------------------
 
-export const contributions = pgTable('contributions', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => profiles.id, { onDelete: 'cascade' }),
-  goalId: uuid('goal_id').references(() => goals.id, {
-    onDelete: 'set null',
+export const contributions = pgTable(
+  'contributions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    goalId: uuid('goal_id').references(() => goals.id, { onDelete: 'set null' }),
+    clientRequestId: uuid('client_request_id').unique(),
+    amountCents: integer('amount_cents'),
+    kind: text('kind').notNull().default('donation'),
+    note: text('note'),
+    status: contributionStatusEnum('status').notNull().default('pledged'),
+    paymentRef: text('payment_ref'),
+    confirmedAt: timestamp('confirmed_at', { withTimezone: true }),
+    confirmedBy: uuid('confirmed_by').references(() => profiles.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    statusIdx: index('contributions_status_idx').on(t.status, t.createdAt),
   }),
-  clientRequestId: uuid('client_request_id').unique(),
-  amountCents: integer('amount_cents'),
-  kind: text('kind').notNull().default('donation'),
-  note: text('note'),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-})
+)
 
 // ---------------------------------------------------------------------------
-// Achievements
+// Achievements & activity feed
 // ---------------------------------------------------------------------------
 
 export const achievements = pgTable('achievements', {
@@ -314,18 +296,12 @@ export const userAchievements = pgTable(
     achievementId: uuid('achievement_id')
       .notNull()
       .references(() => achievements.id, { onDelete: 'cascade' }),
-    earnedAt: timestamp('earned_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    earnedAt: timestamp('earned_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.userId, t.achievementId] }),
   }),
 )
-
-// ---------------------------------------------------------------------------
-// Activity feed
-// ---------------------------------------------------------------------------
 
 export const activityRecords = pgTable('activity_records', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -338,13 +314,11 @@ export const activityRecords = pgTable('activity_records', {
   pointsDelta: integer('points_delta').notNull().default(0),
   relatedId: uuid('related_id'),
   metadata: jsonb('metadata'),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
 // ---------------------------------------------------------------------------
-// Contact enquiries
+// Contact enquiries & auth rate limiting
 // ---------------------------------------------------------------------------
 
 export const contactEnquiries = pgTable('contact_enquiries', {
@@ -353,27 +327,15 @@ export const contactEnquiries = pgTable('contact_enquiries', {
   email: text('email').notNull(),
   message: text('message').notNull(),
   handled: boolean('handled').notNull().default(false),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
-
-// ---------------------------------------------------------------------------
-// P1 #6: auth rate limiting. A row per attempt (signup / login /
-// reset-password / resend-verification); `lib/rate-limit.ts` counts rows
-// within a trailing window per identifier ("<ip>:<email>") and opportunistically
-// deletes old rows. Indexed on (identifier, createdAt) since every query
-// filters on both.
-// ---------------------------------------------------------------------------
 
 export const authAttempts = pgTable(
   'auth_attempts',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     identifier: text('identifier').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     identifierCreatedAtIdx: index('auth_attempts_identifier_created_at_idx').on(
@@ -384,7 +346,7 @@ export const authAttempts = pgTable(
 )
 
 // ---------------------------------------------------------------------------
-// Relations (used for Drizzle's relational query API)
+// Relations (Drizzle relational query API)
 // ---------------------------------------------------------------------------
 
 export const profilesRelations = relations(profiles, ({ many }) => ({
@@ -396,22 +358,13 @@ export const profilesRelations = relations(profiles, ({ many }) => ({
 }))
 
 export const problemsRelations = relations(problems, ({ one, many }) => ({
-  submitter: one(profiles, {
-    fields: [problems.submittedBy],
-    references: [profiles.id],
-  }),
+  submitter: one(profiles, { fields: [problems.submittedBy], references: [profiles.id] }),
   attachments: many(problemAttachments),
 }))
 
-export const problemAttachmentsRelations = relations(
-  problemAttachments,
-  ({ one }) => ({
-    problem: one(problems, {
-      fields: [problemAttachments.problemId],
-      references: [problems.id],
-    }),
-  }),
-)
+export const problemAttachmentsRelations = relations(problemAttachments, ({ one }) => ({
+  problem: one(problems, { fields: [problemAttachments.problemId], references: [problems.id] }),
+}))
 
 export const goalsRelations = relations(goals, ({ many }) => ({
   milestones: many(goalMilestones),
@@ -419,41 +372,36 @@ export const goalsRelations = relations(goals, ({ many }) => ({
   contributions: many(contributions),
 }))
 
-export const goalMilestonesRelations = relations(
-  goalMilestones,
-  ({ one }) => ({
-    goal: one(goals, { fields: [goalMilestones.goalId], references: [goals.id] }),
-  }),
-)
+export const goalMilestonesRelations = relations(goalMilestones, ({ one }) => ({
+  goal: one(goals, { fields: [goalMilestones.goalId], references: [goals.id] }),
+}))
+
+export const goalUpdatesRelations = relations(goalUpdates, ({ one }) => ({
+  goal: one(goals, { fields: [goalUpdates.goalId], references: [goals.id] }),
+}))
+
+export const contributionsRelations = relations(contributions, ({ one }) => ({
+  user: one(profiles, { fields: [contributions.userId], references: [profiles.id] }),
+  goal: one(goals, { fields: [contributions.goalId], references: [goals.id] }),
+}))
 
 export const eventsRelations = relations(events, ({ many }) => ({
   registrations: many(eventRegistrations),
 }))
 
-export const eventRegistrationsRelations = relations(
-  eventRegistrations,
-  ({ one }) => ({
-    event: one(events, {
-      fields: [eventRegistrations.eventId],
-      references: [events.id],
-    }),
-    user: one(profiles, {
-      fields: [eventRegistrations.userId],
-      references: [profiles.id],
-    }),
-  }),
-)
+export const eventRegistrationsRelations = relations(eventRegistrations, ({ one }) => ({
+  event: one(events, { fields: [eventRegistrations.eventId], references: [events.id] }),
+  user: one(profiles, { fields: [eventRegistrations.userId], references: [profiles.id] }),
+}))
 
-export const userAchievementsRelations = relations(
-  userAchievements,
-  ({ one }) => ({
-    user: one(profiles, {
-      fields: [userAchievements.userId],
-      references: [profiles.id],
-    }),
-    achievement: one(achievements, {
-      fields: [userAchievements.achievementId],
-      references: [achievements.id],
-    }),
+export const storiesRelations = relations(stories, ({ one }) => ({
+  author: one(profiles, { fields: [stories.authorId], references: [profiles.id] }),
+}))
+
+export const userAchievementsRelations = relations(userAchievements, ({ one }) => ({
+  user: one(profiles, { fields: [userAchievements.userId], references: [profiles.id] }),
+  achievement: one(achievements, {
+    fields: [userAchievements.achievementId],
+    references: [achievements.id],
   }),
-)
+}))

@@ -34,9 +34,11 @@ export function YouTubeIcon(props: IconProps) {
   )
 }
 
+// Links come from env vars. An icon with no URL set is hidden, so the site
+// never ships dead "#" links.
 export const brandSocials = [
-  { href: '#', label: 'X', Icon: XIcon },
-  { href: '#', label: 'LinkedIn', Icon: LinkedInIcon },
-  { href: '#', label: 'GitHub', Icon: GitHubIcon },
-  { href: '#', label: 'YouTube', Icon: YouTubeIcon },
-]
+  { href: process.env.NEXT_PUBLIC_X_URL, label: 'X', Icon: XIcon },
+  { href: process.env.NEXT_PUBLIC_LINKEDIN_URL, label: 'LinkedIn', Icon: LinkedInIcon },
+  { href: process.env.NEXT_PUBLIC_GITHUB_URL, label: 'GitHub', Icon: GitHubIcon },
+  { href: process.env.NEXT_PUBLIC_YOUTUBE_URL, label: 'YouTube', Icon: YouTubeIcon },
+].filter((s): s is { href: string; label: string; Icon: typeof XIcon } => !!s.href)

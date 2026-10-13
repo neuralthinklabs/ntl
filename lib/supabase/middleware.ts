@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { fetchIsAdminRole } from '@/lib/auth/role-check'
 
-const PROTECTED_PREFIXES = ['/dashboard', '/profile', '/problems/mine']
+const PROTECTED_PREFIXES = ['/dashboard', '/profile', '/problems/mine', '/contributions']
 const ADMIN_PREFIXES = ['/admin']
 
 export async function updateSession(request: NextRequest) {
@@ -17,9 +17,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
-          )
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           response = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options),
@@ -29,32 +27,32 @@ export async function updateSession(request: NextRequest) {
     },
   )
 
-  // IMPORTANT: this call refreshes the auth token and must not be removed.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // IMPORTANT: this refreshes the auth token and must not be removed.
+  // getClaims() validates the JWT locally when the project uses asymmetric
+  // signing keys (no network round-trip per request) and falls back to the
+  // Auth server otherwise. Sensitive checks (server actions, admin pages)
+  // still use getUser().
+  const { data } = await supabase.auth.getClaims()
+  const userId = data?.claims?.sub as string | undefined
 
   const path = request.nextUrl.pathname
-
   const needsAuth = PROTECTED_PREFIXES.some((p) => path.startsWith(p))
   const needsAdmin = ADMIN_PREFIXES.some((p) => path.startsWith(p))
 
-  if ((needsAuth || needsAdmin) && !user) {
+  if ((needsAuth || needsAdmin) && !userId) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
+    url.search = ''
     url.searchParams.set('next', path)
     return NextResponse.redirect(url)
   }
 
-  if (needsAdmin && user) {
-    // See lib/auth/role-check.ts — this is the same check
-    // lib/auth/admin.ts uses for pages/Server Actions, kept in one place
-    // so the two runtimes (edge here, Node there) can't drift apart.
-    const isAdmin = await fetchIsAdminRole(supabase, user.id)
-
+  if (needsAdmin && userId) {
+    const isAdmin = await fetchIsAdminRole(supabase, userId)
     if (!isAdmin) {
       const url = request.nextUrl.clone()
       url.pathname = '/dashboard'
+      url.search = ''
       return NextResponse.redirect(url)
     }
   }

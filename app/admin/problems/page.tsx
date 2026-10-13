@@ -1,46 +1,64 @@
-import type { Metadata } from 'next'
-import { desc, count } from 'drizzle-orm'
-import { SiteShell } from '@/components/site/site-shell'
-import { PageHero } from '@/components/site/page-hero'
-import { Pager } from '@/components/site/pager'
+import { and, count, desc, eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { problems } from '@/db/schema'
+import { Pager } from '@/components/site/pager'
 import { AdminProblemRow } from '@/components/admin/admin-problem-row'
-import { requireAdminPage } from '@/lib/auth/admin'
+import { AdminHeader, EmptyState, FilterPills } from '@/components/admin/admin-header'
 import { parsePage, totalPages } from '@/lib/pagination'
+import { createClient } from '@/lib/supabase/server'
+import { goals as ntldgs, goalIndexBySlug } from '@/lib/ntldgs'
 
-export const metadata: Metadata = {
-  title: 'Review Problems — Admin',
-}
+export const metadata = { title: 'Problems' }
+
+const STATUSES = ['submitted', 'in_review', 'accepted', 'in_progress', 'resolved', 'declined'] as const
 
 export default async function AdminProblemsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>
+  searchParams: Promise<{ page?: string; status?: string }>
 }) {
-  await requireAdminPage('/admin/problems')
+  const sp = await searchParams
+  const { page, limit, offset } = parsePage(sp)
+  const status = STATUSES.find((s) => s === sp.status)
+  const where = status ? eq(problems.status, status) : undefined
 
-  const { page, limit, offset } = parsePage(await searchParams)
-
-  // P1 #11: this list has no natural upper bound (every submission ever
-  // made) — paginate it instead of `findMany()` with no limit, which used
-  // to load and render the entire table on every visit.
-  const [all, [{ value: totalCount }]] = await Promise.all([
+  const [rows, [{ value: total }]] = await Promise.all([
     db.query.problems.findMany({
+      where,
       orderBy: [desc(problems.createdAt)],
-      with: { submitter: true },
+      with: { submitter: true, attachments: true },
       limit,
       offset,
     }),
-    db.select({ value: count() }).from(problems),
+    db.select({ value: count() }).from(problems).where(and(where)),
   ])
 
+  // Signed links so admins can open private attachments (valid for 1 hour).
+  const supabase = await createClient()
+  const withUrls = await Promise.all(
+    rows.map(async (p) => ({
+      p,
+      files: await Promise.all(
+        p.attachments.map(async (a) => {
+          const { data } = await supabase.storage.from('problem-attachments').createSignedUrl(a.storagePath, 3600)
+          return { name: a.fileName, url: data?.signedUrl ?? null }
+        }),
+      ),
+    })),
+  )
+
   return (
-    <SiteShell>
-      <PageHero title="Review Problems" description="Approve, decline, or update the status of submitted problems." />
-      <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
-        <div className="flex flex-col gap-4">
-          {all.map((p) => (
+    <>
+      <AdminHeader title="Problems" description="Review submissions. Changing a status emails the person who submitted it." />
+      <FilterPills
+        basePath="/admin/problems"
+        current={status ?? 'all'}
+        options={[{ value: 'all', label: 'All' }, ...STATUSES.map((s) => ({ value: s, label: s.replace('_', ' ') }))]}
+      />
+      <div className="flex flex-col gap-4">
+        {withUrls.map(({ p, files }) => {
+          const gi = goalIndexBySlug(p.ntldgSlug)
+          return (
             <AdminProblemRow
               key={p.id}
               id={p.id}
@@ -48,18 +66,18 @@ export default async function AdminProblemsPage({
               description={p.description}
               status={p.status}
               submitterEmail={p.submitter?.email ?? 'unknown'}
-              submittedAt={new Date(p.createdAt).toLocaleDateString()}
+              submittedAt={new Date(p.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC' })}
               adminNotes={p.adminNotes ?? ''}
+              category={p.category}
+              location={p.location}
+              goalLabel={gi >= 0 ? `${ntldgs[gi].verb}: ${ntldgs[gi].title}` : undefined}
+              attachments={files}
             />
-          ))}
-          {all.length === 0 && (
-            <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
-              No submissions yet.
-            </p>
-          )}
-        </div>
-        <Pager page={page} totalPages={totalPages(totalCount, limit)} basePath="/admin/problems" />
+          )
+        })}
+        {rows.length === 0 && <EmptyState>No problems match this filter.</EmptyState>}
       </div>
-    </SiteShell>
+      <Pager page={page} totalPages={totalPages(total, limit)} basePath="/admin/problems" />
+    </>
   )
 }

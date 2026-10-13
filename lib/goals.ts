@@ -6,6 +6,14 @@ export async function getAllGoals() {
   return db.query.goals.findMany({ orderBy: [desc(goals.createdAt)] })
 }
 
+export async function getGoalsForNtldg(ntldgSlug: string, limit = 3) {
+  return db.query.goals.findMany({
+    where: eq(goals.ntldgSlug, ntldgSlug),
+    orderBy: [desc(goals.createdAt)],
+    limit,
+  })
+}
+
 export async function getGoalBySlug(slug: string) {
   const goal = await db.query.goals.findFirst({ where: eq(goals.slug, slug) })
   if (!goal) return null
@@ -20,7 +28,6 @@ export async function getGoalBySlug(slug: string) {
       orderBy: [desc(goalUpdates.createdAt)],
     }),
   ])
-
   return { ...goal, milestones, updates }
 }
 
@@ -28,3 +35,4 @@ export function percentFunded(goal: { fundingRaisedCents: number; fundingTargetC
   if (!goal.fundingTargetCents) return 0
   return Math.min(100, Math.round((goal.fundingRaisedCents / goal.fundingTargetCents) * 100))
 }
+

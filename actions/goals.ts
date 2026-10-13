@@ -1,115 +1,82 @@
 'use server'
 
 import { z } from 'zod'
-import { eq, sql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { goals, contributions } from '@/db/schema'
-import { awardPoints } from '@/lib/points'
+import { sendEmail, pledgeReceivedEmail, pledgeAdminNotifyEmail } from '@/lib/email'
+import { money } from '@/lib/format'
 import type { ActionState } from './auth'
 
-const contributionSchema = z.object({
+// A pledge is only a promise. The public progress bar changes ONLY when an
+// admin confirms the payment (actions/admin/contributions.ts).
+const MAX_PLEDGE_DOLLARS = 100_000
+
+const pledgeSchema = z.object({
   goalId: z.string().uuid(),
-  // Still accepted from the hidden form field for the idempotent-replay
-  // fast path below, but never trusted for anything that touches the DB —
-  // see the note near `goal.slug` further down (P1 #10).
-  goalSlug: z.string(),
-  amount: z.coerce.number().positive('Enter an amount greater than 0.'),
-  kind: z.enum(['donation', 'time', 'in_kind']).default('donation'),
+  amount: z.coerce
+    .number()
+    .positive('Enter an amount greater than 0.')
+    .max(MAX_PLEDGE_DOLLARS, `For pledges above $${MAX_PLEDGE_DOLLARS.toLocaleString()}, please contact us.`),
   note: z.string().max(300).optional(),
   clientRequestId: z.string().uuid('Please reload the page and try again.'),
 })
 
-export async function recordContribution(
-  _prevState: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
+export async function recordContribution(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
+  if (!user) return { error: 'Please log in to pledge your support.' }
 
-  if (!user) {
-    return { error: 'Please log in to contribute to this goal.' }
-  }
-
-  const parsed = contributionSchema.safeParse({
+  const parsed = pledgeSchema.safeParse({
     goalId: formData.get('goalId'),
-    goalSlug: formData.get('goalSlug'),
     amount: formData.get('amount'),
-    kind: formData.get('kind') || 'donation',
     note: formData.get('note') || undefined,
     clientRequestId: formData.get('clientRequestId'),
   })
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Invalid input.' }
 
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? 'Invalid input.' }
-  }
-
-  const { goalId, amount, kind, note, clientRequestId } = parsed.data
-
-  // P1 #10: `goalId` is validated as a real, existing goal here (was
-  // already the case) — the fix is that we now also stop trusting the
-  // posted `goalSlug` for anything beyond the idempotent-replay success
-  // message below. Every DB write and every `revalidatePath` call uses
-  // `goal.slug` fetched from this row, not the client-supplied string, so
-  // a tampered/stale hidden field can't point a write at one goal while
-  // revalidating (or reporting success for) a different page.
+  const { goalId, amount, note, clientRequestId } = parsed.data
   const goal = await db.query.goals.findFirst({ where: eq(goals.id, goalId) })
-  if (!goal) {
-    return { error: 'This goal no longer exists. Please refresh the page.' }
-  }
+  if (!goal) return { error: 'This campaign no longer exists. Please refresh the page.' }
 
-  const existing = await db.query.contributions.findFirst({
-    where: eq(contributions.clientRequestId, clientRequestId),
-  })
-  if (existing) {
-    return { success: 'Thank you for your contribution!' }
-  }
-
-  const amountCents = kind === 'donation' ? Math.round(amount * 100) : null
+  const amountCents = Math.round(amount * 100)
 
   const [inserted] = await db
     .insert(contributions)
-    .values({
-      userId: user.id,
-      goalId: goal.id,
-      clientRequestId,
-      amountCents: amountCents ?? undefined,
-      kind,
-      note,
-    })
+    .values({ userId: user.id, goalId: goal.id, clientRequestId, amountCents, kind: 'donation', note })
     .onConflictDoNothing({ target: contributions.clientRequestId })
     .returning()
 
-  if (!inserted) {
-    return { success: 'Thank you for your contribution!' }
+  // Double-click / retry of the same request: already recorded.
+  if (!inserted) return { success: 'Your pledge is already recorded. Thank you!' }
+
+  const ref = inserted.id.slice(0, 8).toUpperCase()
+  const label = money(amountCents)
+
+  if (user.email) {
+    await sendEmail({
+      to: user.email,
+      subject: `Your pledge to ${goal.title} (ref ${ref})`,
+      html: pledgeReceivedEmail(goal.title, label, ref, process.env.PAYMENT_INSTRUCTIONS ?? ''),
+    })
+  }
+  const inbox = process.env.CONTACT_INBOX_EMAIL
+  if (inbox) {
+    await sendEmail({
+      to: inbox,
+      subject: `New pledge: ${label} to ${goal.title}`,
+      html: pledgeAdminNotifyEmail(user.email ?? 'A member', goal.title, label, `${process.env.NEXT_PUBLIC_SITE_URL}/admin/contributions`),
+    })
   }
 
-  if (amountCents) {
-    await db
-      .update(goals)
-      .set({ fundingRaisedCents: sql`${goals.fundingRaisedCents} + ${amountCents}` })
-      .where(eq(goals.id, goal.id))
+  revalidatePath('/contributions/mine')
+  revalidatePath('/admin/contributions')
+  revalidatePath('/admin')
+  return {
+    success: `Pledge recorded (ref ${ref}). We emailed you the next steps. The progress bar updates once our team confirms your payment.`,
   }
-
-  // P1 #9: centralized — see lib/points.ts.
-  await awardPoints({
-    userId: user.id,
-    points: 15,
-    type: 'goal_supported',
-    title: `Supported a goal`,
-    meta:
-      kind === 'donation'
-        ? `Contributed $${amount.toFixed(2)} · +15 pts`
-        : `Pledged ${kind.replace('_', ' ')} · +15 pts`,
-    relatedId: goal.id,
-  })
-
-  revalidatePath(`/goals/${goal.slug}`)
-  revalidatePath('/support')
-  revalidatePath('/dashboard')
-
-  return { success: 'Thank you for your contribution!' }
 }

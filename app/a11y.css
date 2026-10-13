@@ -1,0 +1,18 @@
+/* Visible keyboard focus everywhere (the base styles only tinted the outline). */
+:focus-visible {
+  outline: 2px solid #0d0f12;
+  outline-offset: 2px;
+}
+.bg-ink :focus-visible,
+header :focus-visible,
+footer :focus-visible {
+  outline-color: #12b886;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

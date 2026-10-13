@@ -1,23 +1,37 @@
+const supabaseHost = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').hostname
+  } catch {
+    return null
+  }
+})()
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // P1 #7: removed `typescript.ignoreBuildErrors` — the build must fail on
-  // real type errors instead of silently shipping them. If you have a
-  // handful of pre-existing type errors, fix them (or narrow-suppress with
-  // `// @ts-expect-error` at the specific line) rather than reinstating this.
   images: {
-    unoptimized: true,
+    // Image optimisation is ON again (it was disabled, which shipped raw PNGs).
+    // Uploaded cover images live in the public Supabase "site-media" bucket.
+    remotePatterns: supabaseHost
+      ? [{ protocol: 'https', hostname: supabaseHost, pathname: '/storage/v1/object/public/**' }]
+      : [],
   },
   experimental: {
-    serverActions: {
-      // actions/problems.ts allows up to MAX_FILES (5) attachments of
-      // MAX_FILE_SIZE (10MB) each = 50MB of raw file data, plus
-      // multipart/base64 overhead and the rest of the form fields.
-      // Next's default Server Action body limit is 1MB, which silently
-      // rejects any submission with attachments without this override.
-      // Keep this in sync with actions/problems.ts if those constants
-      // change.
-      bodySizeLimit: '60mb',
-    },
+    // Attachments now upload straight from the browser to Supabase Storage, so
+    // Server Actions only carry small form payloads again.
+    serverActions: { bodySizeLimit: '2mb' },
+  },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        ],
+      },
+    ]
   },
 }
 
