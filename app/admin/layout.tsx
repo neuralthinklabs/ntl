@@ -1,3 +1,5 @@
+// app/admin/layout.tsx
+export const dynamic = 'force-dynamic'
 import type { Metadata } from 'next'
 import { SiteShell } from '@/components/site/site-shell'
 import { AdminNav } from '@/components/admin/admin-nav'
