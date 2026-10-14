@@ -40,7 +40,7 @@ export function PortfolioList({ items }: { items: PortfolioListItem[] }) {
             aria-pressed={active === f}
             onClick={() => setActive(f)}
             className={cn(
-              'rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
+              'h-9 rounded-full px-4 text-sm font-medium transition-colors',
               active === f ? 'bg-ink text-white' : 'bg-white text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50',
             )}
           >
@@ -49,35 +49,37 @@ export function PortfolioList({ items }: { items: PortfolioListItem[] }) {
         ))}
       </div>
 
-      <div className="mt-8 flex flex-col gap-3">
+      <div className="mt-8 grid gap-5 md:grid-cols-2">
         {filtered.length === 0 && (
-          <p className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-600">Nothing in this category yet.</p>
+          <p className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-600">
+            Nothing in this category yet.
+          </p>
         )}
         {filtered.map((item) => {
           const Icon = TYPE_ICONS[item.type] ?? Boxes
           return (
-            <article key={item.name} className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center">
-              <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand-muted ring-1 ring-inset ring-brand/15">
-                <Icon className="size-6" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-base font-semibold text-ink">{item.name}</h3>
-                  <StatusBadge tone={statusTone(item.status)}>{item.status}</StatusBadge>
-                </div>
-                <p className="mt-0.5 text-sm font-medium text-brand-muted">{item.type}</p>
-                <p className="mt-1 text-sm leading-relaxed text-slate-600">{item.description}</p>
+            <article key={item.name} className="flex flex-col rounded-2xl border border-line bg-white p-6">
+              <div className="flex items-start justify-between gap-4">
+                <span className="inline-flex size-11 items-center justify-center rounded-xl bg-brand-soft text-brand-muted">
+                  <Icon className="size-5" />
+                </span>
+                <StatusBadge tone={statusTone(item.status)}>{item.status}</StatusBadge>
               </div>
-              <Link
-                href="/contact"
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-slate-50"
-              >
-                Enquire <ArrowRight className="size-4" />
-              </Link>
+              <h3 className="mt-5 text-lg font-semibold text-ink">{item.name}</h3>
+              <p className="mt-0.5 text-sm font-medium text-brand-muted">{item.type}</p>
+              <p className="mt-3 text-sm leading-relaxed text-slate-600">{item.description}</p>
             </article>
           )
         })}
       </div>
+
+      {/* One contact link for the whole page instead of one per card. */}
+      <p className="mt-10 text-sm text-slate-600">
+        Interested in a project or a partnership?{' '}
+        <Link href="/contact" className="inline-flex items-center gap-1 font-semibold text-brand-muted underline-offset-4 hover:underline">
+          Get in touch <ArrowRight className="size-4" />
+        </Link>
+      </p>
     </div>
   )
 }

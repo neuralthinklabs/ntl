@@ -23,7 +23,7 @@ const columns = [
     ],
   },
   {
-    title: 'Legal',
+    title: 'Help and legal',
     links: [
       { href: '/faq', label: 'FAQ' },
       { href: '/privacy', label: 'Privacy' },
@@ -34,16 +34,16 @@ const columns = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-white/10 bg-ink text-white">
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <div className="flex flex-col gap-10 md:flex-row md:justify-between">
+    <footer className="bg-ink text-white">
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+        <div className="grid gap-12 md:grid-cols-[1.2fr_2fr]">
           <div className="max-w-xs">
             <Logo />
-            <p className="mt-4 text-sm leading-relaxed text-white/65">
+            <p className="mt-4 text-sm leading-relaxed text-white/60">
               A global ecosystem for learning, innovation and real-world impact.
             </p>
             {brandSocials.length > 0 && (
-              <div className="mt-5 flex items-center gap-2">
+              <div className="mt-6 flex items-center gap-2">
                 {brandSocials.map((s) => (
                   <a
                     key={s.label}
@@ -51,7 +51,7 @@ export function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={s.label}
-                    className="inline-flex size-8 items-center justify-center rounded-md border border-white/15 text-white/70 transition-colors hover:border-brand/50 hover:text-brand"
+                    className="inline-flex size-9 items-center justify-center rounded-lg border border-white/15 text-white/70 transition-colors hover:border-brand/60 hover:text-brand"
                   >
                     <s.Icon className="size-4" />
                   </a>
@@ -64,10 +64,10 @@ export function Footer() {
             {columns.map((c) => (
               <nav key={c.title} aria-label={c.title}>
                 <p className="text-sm font-semibold text-white">{c.title}</p>
-                <ul className="mt-3 flex flex-col gap-2">
+                <ul className="mt-4 flex flex-col gap-2.5">
                   {c.links.map((l) => (
                     <li key={l.href}>
-                      <Link href={l.href} className="text-sm text-white/70 transition-colors hover:text-white">
+                      <Link href={l.href} className="text-sm text-white/60 transition-colors hover:text-white">
                         {l.label}
                       </Link>
                     </li>
@@ -78,8 +78,9 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-white/10 pt-6 text-xs text-white/55">
-          © {new Date().getFullYear()} Neural Think Labs. All rights reserved.
+        <div className="mt-12 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} Neural Think Labs. All rights reserved.</p>
+          <p>Real people. Real problems. Better futures.</p>
         </div>
       </div>
     </footer>

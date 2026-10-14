@@ -44,7 +44,12 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-sans-ui), ui-sans-serif, system-ui, sans-serif;
+
+  --color-canvas: #f6f7f5;
+  --color-line: #e3e7e2;
+  --color-brand-soft: #e8f6f0;
+
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 
   --color-brand: #12b886;
@@ -164,6 +169,7 @@
 }
 
 @layer base {
+  h1, h2, h3 { letter-spacing: -0.02em; }
   * {
     @apply border-border outline-ring/50;
   }

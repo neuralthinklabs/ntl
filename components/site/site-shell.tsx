@@ -12,7 +12,7 @@ export async function SiteShell({ children }: { children: React.ReactNode }) {
   const meta = (claims?.user_metadata ?? {}) as { full_name?: string }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-slate-50">
+    <div className="flex min-h-dvh flex-col bg-canvas">
       <Navbar user={claims?.sub ? { email: (claims.email as string) ?? '', fullName: meta.full_name } : null} />
       <main id="main" className="flex-1">
         {children}

@@ -1,10 +1,10 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { Manrope, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import './a11y.css'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
+const sans = Manrope({ subsets: ['latin'], variable: '--font-sans-ui', display: 'swap' })
 const jetbrains = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains', display: 'swap' })
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
@@ -43,7 +43,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`light ${inter.variable} ${jetbrains.variable}`}>
+    <html lang="en" className={`light ${sans.variable} ${jetbrains.variable}`}>
       <body className="font-sans antialiased">
         <a
           href="#main"
