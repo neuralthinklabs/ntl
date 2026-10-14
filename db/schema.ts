@@ -346,6 +346,26 @@ export const authAttempts = pgTable(
 )
 
 // ---------------------------------------------------------------------------
+// Admin audit log (one row per admin mutation; see lib/audit.ts)
+// ---------------------------------------------------------------------------
+
+export const adminAuditLog = pgTable(
+  'admin_audit_log',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    actorId: uuid('actor_id').references(() => profiles.id, { onDelete: 'set null' }),
+    action: text('action').notNull(),
+    entity: text('entity').notNull(),
+    entityId: text('entity_id'),
+    summary: text('summary'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    createdAtIdx: index('admin_audit_log_created_at_idx').on(t.createdAt),
+  }),
+)
+
+// ---------------------------------------------------------------------------
 // Relations (Drizzle relational query API)
 // ---------------------------------------------------------------------------
 
