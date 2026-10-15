@@ -161,7 +161,7 @@ export function Navbar({ user }: { user?: NavbarUser } = {}) {
           )}
           <Link
             href="/problems"
-            className="inline-flex h-10 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-brand-foreground transition-colors hover:bg-[#0fa377]"
+            className="inline-flex h-10 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-brand-foreground transition-colors hover:brightness-110"
           >
             Submit a problem
           </Link>

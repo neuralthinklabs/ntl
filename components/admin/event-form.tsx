@@ -56,7 +56,7 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
             name="isOnline"
             checked={online}
             onChange={(e) => setOnline(e.target.checked)}
-            className="size-4 accent-[#12b886]"
+            className="size-4 accent-[#38b6ff]"
           />
           Online event
         </label>

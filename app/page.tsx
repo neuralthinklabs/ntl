@@ -1,7 +1,7 @@
 import { desc, eq } from 'drizzle-orm'
 import { SiteShell } from '@/components/site/site-shell'
 import { HomeHero } from '@/components/home/hero'
-import { CurrentFocus, FeaturedStory, HomeCta, HomeStats, NtldgTeaser } from '@/components/home/sections'
+import { CurrentFocus, FeaturedStory, HomeCta, HomeStats, HowItWorks, NtldgTeaser } from '@/components/home/sections'
 import { GoalSprite } from '@/components/ntldgs/goal-icon'
 import { db } from '@/db'
 import { goals, portfolioItems } from '@/db/schema'
@@ -28,6 +28,7 @@ export default async function HomePage() {
         project={project ?? null}
         event={events[0] ? { title: events[0].title, meta: events[0].meta } : null}
       />
+      <HowItWorks />
       <NtldgTeaser />
       <FeaturedStory story={story} />
       <HomeCta />

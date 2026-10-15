@@ -1,9 +1,11 @@
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-// brand-muted (#0c5d47) passes contrast on white; the bright brand green does not.
+// Small uppercase eyebrow. brand-muted (#1f4fd8) passes contrast on white.
 export function SectionLabel({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <p className={cn('text-sm font-semibold text-brand-muted', className)}>{children}</p>
+  return (
+    <p className={cn('text-xs font-semibold uppercase tracking-[0.16em] text-brand-muted', className)}>{children}</p>
+  )
 }
 
 export function SectionHeading({
@@ -20,8 +22,8 @@ export function SectionHeading({
   return (
     <div className={cn('max-w-2xl', className)}>
       {label && <SectionLabel>{label}</SectionLabel>}
-      <h2 className={cn('text-2xl font-semibold tracking-tight text-ink sm:text-3xl', label && 'mt-2')}>{title}</h2>
-      {description && <p className="mt-3 text-base leading-relaxed text-slate-600">{description}</p>}
+      <h2 className={cn('text-3xl font-semibold tracking-tight text-ink sm:text-4xl', label && 'mt-3')}>{title}</h2>
+      {description && <p className="mt-4 text-base leading-relaxed text-slate-600">{description}</p>}
     </div>
   )
 }
@@ -29,10 +31,10 @@ export function SectionHeading({
 type StatusTone = 'active' | 'progress' | 'planned' | 'completed' | 'neutral'
 
 const statusStyles: Record<StatusTone, string> = {
-  active: 'bg-brand-soft text-brand-muted ring-brand/20',
-  progress: 'bg-amber-50 text-amber-800 ring-amber-200',
+  active: 'bg-brand-soft text-brand-muted ring-brand/30',
+  progress: 'bg-brand-soft text-brand-muted ring-brand/30',
   planned: 'bg-slate-100 text-slate-700 ring-slate-200',
-  completed: 'bg-brand-soft text-brand-muted ring-brand/20',
+  completed: 'bg-emerald-50 text-emerald-800 ring-emerald-200',
   neutral: 'bg-slate-100 text-slate-700 ring-slate-200',
 }
 
@@ -56,14 +58,14 @@ export function ProgressBar({ value, className, tone = 'brand', label = 'Funding
       aria-valuemin={0}
       aria-valuemax={100}
     >
-      <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${v}%` }} />
+      <div className="h-full rounded-full bg-gradient-to-r from-brand to-brand-2 transition-all" style={{ width: `${v}%` }} />
     </div>
   )
 }
 
 export function IconTile({ icon: Icon, className }: { icon: LucideIcon; className?: string }) {
   return (
-    <span className={cn('inline-flex size-10 items-center justify-center rounded-xl bg-brand-soft text-brand-muted', className)}>
+    <span className={cn('inline-flex size-11 items-center justify-center rounded-full bg-brand-soft text-brand-muted ring-1 ring-inset ring-brand/20', className)}>
       <Icon className="size-5" />
     </span>
   )
