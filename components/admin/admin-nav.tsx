@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -29,13 +30,28 @@ const items = [
 
 export function AdminNav() {
   const pathname = usePathname()
+  const boxRef = useRef<HTMLElement>(null)
+  const activeRef = useRef<HTMLAnchorElement>(null)
+
+  useEffect(() => {
+    const box = boxRef.current
+    const el = activeRef.current
+    if (!box || !el) return
+    box.scrollTo({ left: el.offsetLeft - box.clientWidth / 2 + el.clientWidth / 2, behavior: 'smooth' })
+  }, [pathname])
+
   return (
-    <nav aria-label="Admin" className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">
+    <nav
+      ref={boxRef}
+      aria-label="Admin"
+      className="relative flex gap-1 overflow-x-auto [scrollbar-width:none] lg:flex-col lg:overflow-visible [&::-webkit-scrollbar]:hidden"
+    >
       {items.map((n) => {
         const active = n.exact ? pathname === n.href : pathname.startsWith(n.href)
         return (
           <Link
             key={n.href}
+            ref={active ? activeRef : undefined}
             href={n.href}
             aria-current={active ? 'page' : undefined}
             className={cn(

@@ -177,8 +177,9 @@ export function Navbar({ user }: { user?: NavbarUser } = {}) {
           {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </div>
+    </header>
 
-      {mobileOpen && (
+    {mobileOpen && (
         <div className="fixed inset-x-0 bottom-0 top-16 overflow-y-auto border-t border-white/10 bg-ink lg:hidden">
           <nav aria-label="Mobile" className="mx-auto flex max-w-6xl flex-col px-4 pb-10 pt-4">
             <ul className="flex flex-col">
@@ -251,6 +252,5 @@ export function Navbar({ user }: { user?: NavbarUser } = {}) {
           </nav>
         </div>
       )}
-    </header>
   )
 }
