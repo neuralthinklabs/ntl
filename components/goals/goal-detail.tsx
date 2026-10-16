@@ -10,12 +10,14 @@ import {
   Users,
 } from 'lucide-react'
 import { SectionLabel } from '@/components/site/ui'
+import { PersonChip } from '@/components/credits/person-chip'
 import { cn } from '@/lib/utils'
 
 const tabs = ['Overview', 'Updates', 'Milestones', 'Team']
 
 export type GoalMilestone = { id: string; name: string; status: string }
 export type GoalUpdate = { id: string; title: string; body: string; createdAt: string }
+export type GoalPerson = { ntlId: string; name: string; roleLabel: string }
 
 export function GoalDetail({
   problemSummary,
@@ -25,6 +27,7 @@ export function GoalDetail({
   fundingTarget,
   milestones,
   updates,
+  contributors = [],
 }: {
   problemSummary: string
   objective: string
@@ -33,6 +36,7 @@ export function GoalDetail({
   fundingTarget: string
   milestones: GoalMilestone[]
   updates: GoalUpdate[]
+  contributors?: GoalPerson[]
 }) {
   const [tab, setTab] = useState('Overview')
 
@@ -116,13 +120,28 @@ export function GoalDetail({
         )}
 
         {tab === 'Team' && (
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <span className="inline-flex size-10 items-center justify-center rounded-xl bg-brand/10 text-brand-muted ring-1 ring-inset ring-brand/15">
-                <Users className="size-5" />
-              </span>
-              <h3 className="mt-3 text-sm font-semibold text-ink">{responsibleTeam || 'Team not yet assigned'}</h3>
-              <p className="mt-0.5 text-xs text-slate-500">Responsible team</p>
+          <div className="flex flex-col gap-8">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <span className="inline-flex size-10 items-center justify-center rounded-xl bg-brand/10 text-brand-muted ring-1 ring-inset ring-brand/15">
+                  <Users className="size-5" />
+                </span>
+                <h3 className="mt-3 text-sm font-semibold text-ink">{responsibleTeam || 'Team not yet assigned'}</h3>
+                <p className="mt-0.5 text-xs text-slate-500">Responsible team</p>
+              </div>
+            </div>
+
+            <div>
+              <SectionLabel>The people behind this project</SectionLabel>
+              {contributors.length === 0 ? (
+                <p className="mt-3 text-sm text-slate-500">Contributors will be credited here.</p>
+              ) : (
+                <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                  {contributors.map((c) => (
+                    <PersonChip key={c.ntlId} name={c.name} ntlId={c.ntlId} label={c.roleLabel} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

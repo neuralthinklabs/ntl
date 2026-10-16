@@ -2,7 +2,9 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { fetchIsAdminRole } from '@/lib/auth/role-check'
 
-const PROTECTED_PREFIXES = ['/dashboard', '/profile', '/problems/mine', '/contributions']
+// /team is login-only here; the page itself checks the volunteer / core team /
+// admin role and redirects everyone else.
+const PROTECTED_PREFIXES = ['/dashboard', '/profile', '/problems/mine', '/contributions', '/team']
 const ADMIN_PREFIXES = ['/admin']
 
 export async function updateSession(request: NextRequest) {
@@ -28,10 +30,6 @@ export async function updateSession(request: NextRequest) {
   )
 
   // IMPORTANT: this refreshes the auth token and must not be removed.
-  // getClaims() validates the JWT locally when the project uses asymmetric
-  // signing keys (no network round-trip per request) and falls back to the
-  // Auth server otherwise. Sensitive checks (server actions, admin pages)
-  // still use getUser().
   const { data } = await supabase.auth.getClaims()
   const userId = data?.claims?.sub as string | undefined
 

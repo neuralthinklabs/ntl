@@ -1,11 +1,12 @@
 import { notFound } from 'next/navigation'
 import { asc, desc, eq } from 'drizzle-orm'
 import { db } from '@/db'
-import { goals, goalMilestones, goalUpdates } from '@/db/schema'
+import { goals, goalMilestones, goalUpdates, profiles, projectContributors } from '@/db/schema'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { CampaignForm } from '@/components/admin/campaign-form'
 import { DeleteButton } from '@/components/admin/delete-button'
 import { MilestoneEditor, UpdatesEditor } from '@/components/admin/campaign-extras'
+import { ContributorEditor } from '@/components/admin/campaign-contributors'
 import { deleteCampaign } from '@/actions/admin/campaigns'
 
 export const metadata = { title: 'Edit campaign' }
@@ -18,9 +19,15 @@ export default async function EditCampaignPage({ params, searchParams }: { param
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound()
   const g = await db.query.goals.findFirst({ where: eq(goals.id, id) })
   if (!g) notFound()
-  const [milestones, updates] = await Promise.all([
+  const [milestones, updates, people] = await Promise.all([
     db.query.goalMilestones.findMany({ where: eq(goalMilestones.goalId, id), orderBy: [asc(goalMilestones.sortOrder)] }),
     db.query.goalUpdates.findMany({ where: eq(goalUpdates.goalId, id), orderBy: [desc(goalUpdates.createdAt)] }),
+    db
+      .select({ userId: profiles.id, name: profiles.fullName, email: profiles.email, ntlId: profiles.ntlId, showCredit: profiles.showCredit, roleLabel: projectContributors.roleLabel })
+      .from(projectContributors)
+      .innerJoin(profiles, eq(projectContributors.userId, profiles.id))
+      .where(eq(projectContributors.goalId, id))
+      .orderBy(asc(projectContributors.createdAt)),
   ])
 
   return (
@@ -44,6 +51,10 @@ export default async function EditCampaignPage({ params, searchParams }: { param
             endDate: day(g.endDate),
             heroImage: g.heroImage ?? '',
           }}
+        />
+        <ContributorEditor
+          goalId={g.id}
+          contributors={people.map((p) => ({ userId: p.userId, name: p.name || p.email, ntlId: p.ntlId, roleLabel: p.roleLabel, hidden: !p.showCredit }))}
         />
         <MilestoneEditor goalId={g.id} milestones={milestones.map((m) => ({ id: m.id, name: m.name, status: m.status }))} />
         <UpdatesEditor goalId={g.id} updates={updates.map((u) => ({ id: u.id, title: u.title, body: u.body, date: u.createdAt.toLocaleDateString('en-US', { timeZone: 'UTC' }) }))} />

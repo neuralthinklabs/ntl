@@ -32,6 +32,8 @@ export async function updateProfile(_prev: ActionState, formData: FormData): Pro
       fullName: parsed.data.fullName,
       // Empty string clears the bio (previously it was silently ignored).
       bio: parsed.data.bio === '' ? null : parsed.data.bio,
+      // Checkbox: present = "on", absent = off.
+      showCredit: formData.get('showCredit') === 'on',
       updatedAt: new Date(),
     })
     .where(eq(profiles.id, user.id))

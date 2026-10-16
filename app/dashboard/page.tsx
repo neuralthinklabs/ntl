@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { and, count, desc, eq } from 'drizzle-orm'
+import { and, count, desc, eq, inArray } from 'drizzle-orm'
 import { SiteShell } from '@/components/site/site-shell'
 import { Dashboard } from '@/components/dashboard/dashboard'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
-import { profiles, problems, activityRecords, userAchievements, eventRegistrations } from '@/db/schema'
+import { profiles, problems, activityRecords, userAchievements, eventRegistrations, assignments } from '@/db/schema'
+import { isTeamRole } from '@/lib/roles'
 
 export const metadata: Metadata = { title: 'Dashboard', robots: { index: false } }
 
@@ -16,7 +17,7 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login?next=/dashboard')
 
-  const [profile, [problemCount], [attended], [achievementCount], activity] = await Promise.all([
+  const [profile, [problemCount], [attended], [achievementCount], activity, [open]] = await Promise.all([
     db.query.profiles.findFirst({ where: eq(profiles.id, user.id) }),
     db.select({ n: count() }).from(problems).where(eq(problems.submittedBy, user.id)),
     db
@@ -29,6 +30,10 @@ export default async function DashboardPage() {
       orderBy: [desc(activityRecords.createdAt)],
       limit: 10,
     }),
+    db
+      .select({ n: count() })
+      .from(assignments)
+      .where(and(eq(assignments.assigneeId, user.id), inArray(assignments.status, ['assigned', 'in_progress']))),
   ])
 
   return (
@@ -41,6 +46,10 @@ export default async function DashboardPage() {
           eventsAttended={attended.n}
           achievementsCount={achievementCount.n}
           isAdmin={profile?.role === 'admin'}
+          role={profile?.role ?? 'member'}
+          ntlId={profile?.ntlId ?? ''}
+          isTeam={isTeamRole(profile?.role)}
+          openAssignments={open?.n ?? 0}
           activity={activity.map((a) => ({
             id: a.id,
             title: a.title,

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   CalendarDays,
+  ClipboardList,
   FileText,
   HandCoins,
   LayoutDashboard,
@@ -19,6 +20,7 @@ import { cn } from '@/lib/utils'
 const items = [
   { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
   { href: '/admin/problems', label: 'Problems', icon: ListChecks },
+  { href: '/admin/assignments', label: 'Assignments', icon: ClipboardList },
   { href: '/admin/contributions', label: 'Pledges & payments', icon: HandCoins },
   { href: '/admin/posts', label: 'Posts & stories', icon: FileText },
   { href: '/admin/events', label: 'Events', icon: CalendarDays },

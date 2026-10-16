@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
+import Link from 'next/link'
 import { updateProfile } from '@/actions/profile'
 
 const fieldClass =
@@ -10,10 +11,14 @@ export function ProfileForm({
   email,
   fullName,
   bio,
+  ntlId,
+  showCredit,
 }: {
   email: string
   fullName: string
   bio: string
+  ntlId: string
+  showCredit: boolean
 }) {
   const [state, formAction, pending] = useActionState(updateProfile, null)
 
@@ -27,12 +32,27 @@ export function ProfileForm({
         <input value={email} disabled className={`${fieldClass} bg-slate-50 text-slate-400`} />
       </label>
       <label className="block">
+        <span className="mb-1.5 block text-sm font-medium text-ink">Your NTL ID</span>
+        <input value={ntlId} readOnly className={`${fieldClass} bg-slate-50 font-mono text-slate-700`} />
+        <span className="mt-1 block text-xs text-slate-500">
+          Your permanent identity across Neural Think Labs. It never changes.{' '}
+          {showCredit && <Link href={`/u/${ntlId}`} className="font-medium text-brand-muted underline">View your public page</Link>}
+        </span>
+      </label>
+      <label className="block">
         <span className="mb-1.5 block text-sm font-medium text-ink">Full name</span>
         <input name="fullName" defaultValue={fullName} required className={fieldClass} />
       </label>
       <label className="block">
         <span className="mb-1.5 block text-sm font-medium text-ink">Bio</span>
         <textarea name="bio" defaultValue={bio} rows={4} className={`${fieldClass} resize-none`} />
+      </label>
+      <label className="flex items-start gap-3">
+        <input type="checkbox" name="showCredit" defaultChecked={showCredit} className="mt-0.5 size-4 accent-[#38b6ff]" />
+        <span className="text-sm text-ink">
+          Show my name and NTL ID publicly when I am credited on a project or blog post
+          <span className="mt-0.5 block text-xs text-slate-500">Turn this off to stay anonymous. Your bio is only shown on your public page.</span>
+        </span>
       </label>
 
       {state?.error && (

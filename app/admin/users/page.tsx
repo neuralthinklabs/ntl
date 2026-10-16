@@ -18,18 +18,22 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
   ])
   return (
     <>
-      <AdminHeader title="Users" description="Give trusted people admin access, or take it away." />
+      <AdminHeader
+        title="Users"
+        description="Set each person's role. Volunteers and core team get a personal workspace with only the work you assign them. Only admins can change roles."
+      />
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <table className="w-full min-w-[640px] text-left">
+        <table className="w-full min-w-[820px] text-left">
           <thead className="text-xs text-slate-600">
             <tr>
               <th className="pb-2 pr-4 font-medium">Name</th><th className="pb-2 pr-4 font-medium">Email</th>
-              <th className="pb-2 pr-4 font-medium">Points</th><th className="pb-2 pr-4 font-medium">Joined</th><th className="pb-2 font-medium">Role</th>
+              <th className="pb-2 pr-4 font-medium">NTL ID</th><th className="pb-2 pr-4 font-medium">Points</th>
+              <th className="pb-2 pr-4 font-medium">Joined</th><th className="pb-2 font-medium">Role</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((u) => (
-              <UserRow key={u.id} id={u.id} name={u.fullName ?? ''} email={u.email} role={u.role} points={u.points} joined={u.createdAt.toLocaleDateString('en-US', { timeZone: 'UTC' })} isSelf={u.id === user?.id} />
+              <UserRow key={u.id} id={u.id} name={u.fullName ?? ''} email={u.email} ntlId={u.ntlId} role={u.role} points={u.points} joined={u.createdAt.toLocaleDateString('en-US', { timeZone: 'UTC' })} isSelf={u.id === user?.id} />
             ))}
           </tbody>
         </table>

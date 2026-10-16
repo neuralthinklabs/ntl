@@ -7,6 +7,7 @@ import { ProgressBar } from '@/components/site/ui'
 import { GoalDetail } from '@/components/goals/goal-detail'
 import { ContributeForm } from '@/components/goals/contribute-form'
 import { getGoalBySlug, percentFunded } from '@/lib/goals'
+import { getGoalContributors } from '@/lib/credits'
 import { money } from '@/lib/format'
 import { goalIndexBySlug, goals as ntldgs } from '@/lib/ntldgs'
 import { createClient } from '@/lib/supabase/server'
@@ -29,9 +30,12 @@ export default async function GoalPage({ params }: Props) {
   if (!goal) notFound()
 
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const [
+    {
+      data: { user },
+    },
+    contributors,
+  ] = await Promise.all([supabase.auth.getUser(), getGoalContributors(goal.id)])
 
   const percent = percentFunded(goal)
   const fmt = (d: Date) => new Date(d).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })
@@ -80,6 +84,7 @@ export default async function GoalPage({ params }: Props) {
           timeline={timeline}
           fundingTarget={money(goal.fundingTargetCents)}
           milestones={goal.milestones}
+          contributors={contributors}
           updates={goal.updates.map((u) => ({
             id: u.id,
             title: u.title,

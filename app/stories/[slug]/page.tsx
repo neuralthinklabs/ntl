@@ -37,7 +37,19 @@ export default async function StoryPage({ params }: Props) {
         <p className="mt-6 text-sm text-slate-600">
           <span className="rounded-full bg-brand/10 px-2.5 py-0.5 font-medium text-brand-muted">{s.category}</span>
           <span className="ml-3">{s.date}</span>
-          {s.authorName && <span> · {s.authorName}</span>}
+          {s.authorName && (
+            <span>
+              {' · by '}
+              {s.authorNtlId ? (
+                <Link href={`/u/${s.authorNtlId}`} className="font-medium text-ink underline-offset-2 hover:underline">
+                  {s.authorName}
+                </Link>
+              ) : (
+                s.authorName
+              )}
+              {s.authorNtlId && <span className="ml-1.5 font-mono text-xs text-slate-500">{s.authorNtlId}</span>}
+            </span>
+          )}
         </p>
         <h1 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-ink sm:text-4xl">{s.title}</h1>
         {s.excerpt && <p className="mt-4 text-lg leading-relaxed text-slate-600">{s.excerpt}</p>}

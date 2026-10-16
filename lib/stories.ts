@@ -53,10 +53,19 @@ export async function getStoriesForGoal(ntldgSlug: string, limit = 3) {
 export async function getStoryBySlug(slug: string) {
   const row = await db.query.stories.findFirst({
     where: and(eq(stories.slug, slug), live()),
-    with: { author: { columns: { fullName: true } } },
+    with: { author: { columns: { fullName: true, ntlId: true, showCredit: true } } },
   })
   if (!row) return null
-  return { ...toCard(row), body: row.body ?? '', ntldgSlug: row.ntldgSlug, updatedAt: row.updatedAt, authorName: row.author?.fullName ?? null }
+  // The byline respects the author's "show my name publicly" choice.
+  const credited = row.author?.showCredit ? row.author : null
+  return {
+    ...toCard(row),
+    body: row.body ?? '',
+    ntldgSlug: row.ntldgSlug,
+    updatedAt: row.updatedAt,
+    authorName: credited ? credited.fullName || credited.ntlId : null,
+    authorNtlId: credited?.ntlId ?? null,
+  }
 }
 
 export function getStoryCategories(items: StoryCardData[]) {

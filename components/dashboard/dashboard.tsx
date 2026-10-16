@@ -2,11 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Award, CalendarDays, Compass, HandHeart, LayoutDashboard, ListChecks, LogOut, ShieldCheck, Sparkles, Trophy, User } from 'lucide-react'
+import { Award, CalendarDays, ClipboardList, Compass, HandHeart, LayoutDashboard, ListChecks, LogOut, ShieldCheck, Sparkles, Trophy, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { logout } from '@/actions/auth'
+import { ROLE_LABELS } from '@/lib/roles'
 
-const nav = [
+const baseNav = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
   { label: 'Profile', icon: User, href: '/profile' },
   { label: 'My problems', icon: ListChecks, href: '/problems/mine' },
@@ -26,6 +27,10 @@ export function Dashboard({
   achievementsCount,
   activity,
   isAdmin = false,
+  role = 'member',
+  ntlId = '',
+  isTeam = false,
+  openAssignments = 0,
 }: {
   name: string
   points: number
@@ -34,8 +39,17 @@ export function Dashboard({
   achievementsCount: number
   activity: ActivityItem[]
   isAdmin?: boolean
+  role?: string
+  ntlId?: string
+  isTeam?: boolean
+  openAssignments?: number
 }) {
   const pathname = usePathname()
+
+  // Volunteers, core team and admins get a personal workspace link.
+  const nav = isTeam
+    ? [...baseNav.slice(0, 3), { label: 'My workspace', icon: ClipboardList, href: '/team' }, ...baseNav.slice(3)]
+    : baseNav
 
   const stats = [
     { label: 'Total points', value: points.toLocaleString(), icon: Sparkles },
@@ -54,7 +68,8 @@ export function Dashboard({
             <span className="flex size-11 items-center justify-center rounded-full bg-brand text-sm font-semibold text-brand-foreground">{initials || 'U'}</span>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-ink">{name}</p>
-              <p className="truncate text-xs text-slate-600">{isAdmin ? 'Admin' : 'Member'}</p>
+              <p className="truncate text-xs text-slate-600">{ROLE_LABELS[role] ?? (isAdmin ? 'Admin' : 'Member')}</p>
+              {ntlId && <p className="truncate font-mono text-[11px] text-slate-500">{ntlId}</p>}
             </div>
           </div>
 
@@ -70,6 +85,9 @@ export function Dashboard({
                 >
                   <n.icon className={cn('size-4', active ? 'text-brand-muted' : 'text-slate-500')} />
                   {n.label}
+                  {n.href === '/team' && openAssignments > 0 && (
+                    <span className="ml-auto rounded-full bg-brand px-2 py-0.5 text-xs font-semibold text-brand-foreground">{openAssignments}</span>
+                  )}
                 </Link>
               )
             })}
@@ -93,7 +111,16 @@ export function Dashboard({
         <div>
           <div className="rounded-2xl bg-ink p-6 text-white sm:p-8">
             <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Welcome back, {name}</h1>
-            <p className="mt-1 text-sm text-white/70">Here is your activity at a glance.</p>
+            <p className="mt-1 text-sm text-white/70">
+              {isTeam && openAssignments > 0
+                ? `You have ${openAssignments} open assignment${openAssignments === 1 ? '' : 's'} in your workspace.`
+                : 'Here is your activity at a glance.'}
+            </p>
+            {isTeam && openAssignments > 0 && (
+              <Link href="/team" className="mt-4 inline-flex rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground hover:bg-brand/90">
+                Open my workspace
+              </Link>
+            )}
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">

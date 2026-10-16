@@ -9,7 +9,7 @@ import { profiles } from '@/db/schema'
 import { ProfileForm } from '@/components/profile/profile-form'
 
 export const metadata: Metadata = {
-  title: 'Profile — Neural Think Labs',
+  title: 'Profile',
 }
 
 export default async function ProfilePage() {
@@ -31,6 +31,8 @@ export default async function ProfilePage() {
           email={user.email ?? ''}
           fullName={profile?.fullName ?? ''}
           bio={profile?.bio ?? ''}
+          ntlId={profile?.ntlId ?? ''}
+          showCredit={profile?.showCredit ?? true}
         />
       </div>
     </SiteShell>
