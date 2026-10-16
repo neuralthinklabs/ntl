@@ -52,6 +52,23 @@ export default async function PublicProfilePage({ params }: Props) {
                   </Link>
                 </li>
               ))}
+            {p.portfolio.length > 0 && (
+              <section className="mt-12">
+                <SectionLabel>Portfolio</SectionLabel>
+                <ul className="mt-4 flex flex-col gap-2">
+                  {p.portfolio.map((x) => (
+                    <li key={x.name}>
+                      <Link href="/portfolio" className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 hover:bg-slate-50">
+                        <span className="text-sm font-semibold text-ink">{x.name}</span>
+                        <span className="shrink-0 text-xs text-slate-600">{x.roleLabel}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+            // and change the empty-state condition to:
+            // p.projects.length === 0 && p.portfolio.length === 0 && p.posts.length === 0
             </ul>
           </section>
         )}

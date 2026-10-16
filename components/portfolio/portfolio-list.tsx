@@ -24,7 +24,13 @@ function statusTone(status: string) {
   return 'planned' as const
 }
 
-export type PortfolioListItem = { name: string; type: PortfolioType; status: string; description: string }
+export type PortfolioListItem = {
+  name: string
+  type: PortfolioType
+  status: string
+  description: string
+  people?: { ntlId: string; name: string; roleLabel: string }[]
+}
 
 export function PortfolioList({ items }: { items: PortfolioListItem[] }) {
   const [active, setActive] = useState<'All' | PortfolioType>('All')
@@ -68,6 +74,28 @@ export function PortfolioList({ items }: { items: PortfolioListItem[] }) {
               <h3 className="mt-5 text-lg font-semibold text-ink">{item.name}</h3>
               <p className="mt-0.5 text-sm font-medium text-brand-muted">{item.type}</p>
               <p className="mt-3 text-sm leading-relaxed text-slate-600">{item.description}</p>
+                {item.people && item.people.length > 0 && (
+                  <div className="mt-4 border-t border-line pt-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">Team</p>
+                    <ul className="mt-2 flex flex-wrap gap-2">
+                      {item.people.map((p) => (
+                        <li key={p.ntlId}>
+                          <Link
+                            href={`/u/${p.ntlId}`}
+                            title={`${p.name} · ${p.roleLabel}`}
+                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-3 text-xs font-medium text-ink hover:bg-slate-50"
+                          >
+                            <span className="flex size-6 items-center justify-center rounded-full bg-brand text-[10px] font-semibold text-brand-foreground">
+                              {p.name.split(' ').map((x) => x[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()}
+                            </span>
+                            {p.name}
+                            <span className="text-slate-600">· {p.roleLabel}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
             </article>
           )
         })}

@@ -3,6 +3,9 @@ import { SiteShell } from '@/components/site/site-shell'
 import { PageHero } from '@/components/site/page-hero'
 import { PortfolioList } from '@/components/portfolio/portfolio-list'
 import { getAllPortfolioItems } from '@/lib/portfolio'
+import { getPortfolioWithPeople } from '@/lib/portfolio'
+
+const items = await getPortfolioWithPeople()
 
 export const metadata: Metadata = {
   title: 'Portfolio — Neural Think Labs',

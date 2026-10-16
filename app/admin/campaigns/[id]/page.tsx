@@ -8,6 +8,7 @@ import { DeleteButton } from '@/components/admin/delete-button'
 import { MilestoneEditor, UpdatesEditor } from '@/components/admin/campaign-extras'
 import { ContributorEditor } from '@/components/admin/campaign-contributors'
 import { deleteCampaign } from '@/actions/admin/campaigns'
+import { addContributor, removeContributor } from '@/actions/admin/contributors'
 
 export const metadata = { title: 'Edit campaign' }
 
@@ -53,8 +54,10 @@ export default async function EditCampaignPage({ params, searchParams }: { param
           }}
         />
         <ContributorEditor
-          goalId={g.id}
           contributors={people.map((p) => ({ userId: p.userId, name: p.name || p.email, ntlId: p.ntlId, roleLabel: p.roleLabel, hidden: !p.showCredit }))}
+          add={addContributor.bind(null, g.id)}
+          remove={removeContributor.bind(null, g.id)}
+          where="this campaign"
         />
         <MilestoneEditor goalId={g.id} milestones={milestones.map((m) => ({ id: m.id, name: m.name, status: m.status }))} />
         <UpdatesEditor goalId={g.id} updates={updates.map((u) => ({ id: u.id, title: u.title, body: u.body, date: u.createdAt.toLocaleDateString('en-US', { timeZone: 'UTC' }) }))} />

@@ -1,6 +1,6 @@
 import { and, desc, eq, isNotNull, lte } from 'drizzle-orm'
 import { db } from '@/db'
-import { goals, profiles, projectContributors, stories } from '@/db/schema'
+import { goals, profiles, projectContributors, portfolioItems, stories } from '@/db/schema'
 import { normalizeNtlId } from '@/lib/ntl-id'
 import { publicRoleLabel } from '@/lib/roles'
 
@@ -35,19 +35,19 @@ export async function getPublicProfile(raw: string) {
   if (!p) return null
 
   const now = new Date()
-  const [projects, posts] = await Promise.all([
-    db
-      .select({ slug: goals.slug, title: goals.title, roleLabel: projectContributors.roleLabel })
-      .from(projectContributors)
-      .innerJoin(goals, eq(projectContributors.goalId, goals.id))
-      .where(eq(projectContributors.userId, p.id)),
-    db
-      .select({ slug: stories.slug, title: stories.title, publishedAt: stories.publishedAt })
-      .from(stories)
-      .where(and(eq(stories.authorId, p.id), isNotNull(stories.publishedAt), lte(stories.publishedAt, now)))
-      .orderBy(desc(stories.publishedAt))
-      .limit(20),
+  const [projects, portfolio, posts] = await Promise.all([
+      db.select({ slug: goals.slug, title: goals.title, roleLabel: projectContributors.roleLabel })
+        .from(projectContributors).innerJoin(goals, eq(projectContributors.goalId, goals.id))
+        .where(eq(projectContributors.userId, p.id)),
+      db.select({ name: portfolioItems.name, type: portfolioItems.type, roleLabel: portfolioContributors.roleLabel })
+        .from(portfolioContributors).innerJoin(portfolioItems, eq(portfolioContributors.portfolioItemId, portfolioItems.id))
+        .where(eq(portfolioContributors.userId, p.id)),
+      db.select({ slug: stories.slug, title: stories.title, publishedAt: stories.publishedAt })
+        .from(stories)
+        .where(and(eq(stories.authorId, p.id), isNotNull(stories.publishedAt), lte(stories.publishedAt, now)))
+        .orderBy(desc(stories.publishedAt)).limit(20),
   ])
+  // return: { ..., projects, portfolio, posts }
 
   return {
     name: p.fullName || p.ntlId,

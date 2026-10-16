@@ -215,6 +215,24 @@ export const projectContributors = pgTable(
   }),
 )
 
+/** Credits: the people who worked on a portfolio project. */
+export const portfolioContributors = pgTable(
+  'portfolio_contributors',
+  {
+    portfolioItemId: uuid('portfolio_item_id')
+      .notNull()
+      .references(() => portfolioItems.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    roleLabel: text('role_label').notNull().default('Contributor'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.portfolioItemId, t.userId] }),
+  }),
+)
+
 // ---------------------------------------------------------------------------
 // Events
 // ---------------------------------------------------------------------------
