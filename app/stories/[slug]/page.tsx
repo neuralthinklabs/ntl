@@ -7,6 +7,7 @@ import { SiteShell } from '@/components/site/site-shell'
 import { Prose } from '@/components/site/prose'
 import { getStoryBySlug } from '@/lib/stories'
 import { goalIndexBySlug, goals } from '@/lib/ntldgs'
+import { AuthorBio } from '@/components/stories/author-bio'
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -61,6 +62,9 @@ export default async function StoryPage({ params }: Props) {
         <div className="mt-10">
           <Prose text={s.body} />
         </div>
+        {s.authorName && s.authorNtlId && (
+          <AuthorBio name={s.authorName} ntlId={s.authorNtlId} bio={s.authorBio} />
+        )}
         {gi >= 0 && (
           <p className="mt-12 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700">
             Part of our goal to{' '}

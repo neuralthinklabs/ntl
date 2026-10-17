@@ -43,10 +43,16 @@ export function ProfileForm({
         <span className="mb-1.5 block text-sm font-medium text-ink">Full name</span>
         <input name="fullName" defaultValue={fullName} required className={fieldClass} />
       </label>
+      
+
       <label className="block">
-        <span className="mb-1.5 block text-sm font-medium text-ink">Bio</span>
-        <textarea name="bio" defaultValue={bio} rows={4} className={`${fieldClass} resize-none`} />
+        <span className="mb-1.5 block text-sm font-medium text-ink">Author bio</span>
+        <textarea name="bio" defaultValue={bio} rows={4} maxLength={500} className={`${fieldClass} resize-none`} />
+        <span className="mt-1 block text-xs text-slate-500">
+          Shown under every blog post you write and on your public page. Up to 500 characters.
+        </span>
       </label>
+
       <label className="flex items-start gap-3">
         <input type="checkbox" name="showCredit" defaultChecked={showCredit} className="mt-0.5 size-4 accent-[#38b6ff]" />
         <span className="text-sm text-ink">

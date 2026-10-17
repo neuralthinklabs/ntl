@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import Image from 'next/image';
+
 import {
   BookOpen,
   GitBranch,
@@ -18,6 +20,16 @@ export const metadata: Metadata = {
   title: 'About — Neural Think Labs',
   description:
     'A global ecosystem for learning, innovation and real-world impact.',
+}
+
+const founder = {
+  name: 'Ojas Jhawar',          // TODO
+  title: 'Founder, Neural Think Labs',
+  photo: '/images/founder.jpg',  // TODO: add to /public/images, or set to null
+  bio: [
+    '**Ojas Jhawar** is the founder of Neural Think Labs (NTL), driven by a passion for innovation, technology, and solving real-world problems. He aims to bring people together to learn, collaborate, and turn ideas into meaningful solutions that create a positive impact on humanity.',
+    'Work For A Cause',
+  ],
 }
 
 const domains = [
@@ -94,6 +106,21 @@ export default function AboutPage() {
             </p>
           </div>
         </div>
+        <section className="mt-16 grid gap-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 md:grid-cols-[220px_1fr]">
+          <div className="relative mx-auto aspect-square w-44 overflow-hidden rounded-2xl bg-slate-100 md:w-full">
+            {founder.photo && (
+              <Image src={founder.photo} alt={founder.name} fill sizes="220px" className="object-cover" />
+            )}
+          </div>
+          <div>
+            <SectionLabel>Our Founder</SectionLabel>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">{founder.name}</h2>
+            <p className="mt-0.5 text-sm font-medium text-brand-muted">{founder.title}</p>
+            <div className="mt-4 space-y-3 text-sm leading-relaxed text-slate-600">
+              {founder.bio.map((p, i) => <p key={i}>{p}</p>)}
+            </div>
+          </div>
+        </section>
 
         <div className="mt-16">
           <SectionLabel>Our Domains</SectionLabel>
