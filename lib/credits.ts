@@ -1,6 +1,6 @@
 import { and, desc, eq, isNotNull, lte } from 'drizzle-orm'
 import { db } from '@/db'
-import { goals, profiles, projectContributors, portfolioItems, stories } from '@/db/schema'
+import { goals, profiles, projectContributors, portfolioItems, portfolioContributors, stories } from '@/db/schema'
 import { normalizeNtlId } from '@/lib/ntl-id'
 import { publicRoleLabel } from '@/lib/roles'
 
@@ -40,7 +40,8 @@ export async function getPublicProfile(raw: string) {
         .from(projectContributors).innerJoin(goals, eq(projectContributors.goalId, goals.id))
         .where(eq(projectContributors.userId, p.id)),
       db.select({ name: portfolioItems.name, type: portfolioItems.type, roleLabel: portfolioContributors.roleLabel })
-        .from(portfolioContributors).innerJoin(portfolioItems, eq(portfolioContributors.portfolioItemId, portfolioItems.id))
+        .from(portfolioContributors)
+        .innerJoin(portfolioItems, eq(portfolioContributors.portfolioItemId, portfolioItems.id))
         .where(eq(portfolioContributors.userId, p.id)),
       db.select({ slug: stories.slug, title: stories.title, publishedAt: stories.publishedAt })
         .from(stories)
@@ -56,5 +57,6 @@ export async function getPublicProfile(raw: string) {
     roleLabel: publicRoleLabel(p.role),
     projects,
     posts,
+    portfolio,
   }
 }

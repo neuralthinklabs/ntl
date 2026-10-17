@@ -5,8 +5,6 @@ import { PortfolioList } from '@/components/portfolio/portfolio-list'
 import { getAllPortfolioItems } from '@/lib/portfolio'
 import { getPortfolioWithPeople } from '@/lib/portfolio'
 
-const items = await getPortfolioWithPeople()
-
 export const metadata: Metadata = {
   title: 'Portfolio — Neural Think Labs',
   description:
@@ -15,7 +13,7 @@ export const metadata: Metadata = {
 
 export default async function PortfolioPage() {
   // P2 follow-up: real data from portfolio_items instead of lib/data.ts.
-  const items = await getAllPortfolioItems()
+  const items = await getPortfolioWithPeople()
 
   return (
     <SiteShell>

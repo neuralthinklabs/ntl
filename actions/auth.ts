@@ -10,11 +10,11 @@ import { profiles } from '@/db/schema'
 import { checkAuthLimits, recordAuthAttempt } from '@/lib/rate-limit'
 import { clientIp } from '@/lib/request'
 import { safeNext } from '@/lib/safe-redirect'
+import { siteUrl } from '@/lib/site-url'
 
 export type ActionState = { error?: string; success?: string } | null
 
 const TOO_MANY = 'Too many attempts. Please wait a few minutes and try again.'
-const siteUrl = () => process.env.NEXT_PUBLIC_SITE_URL ?? ''
 
 const signUpSchema = z.object({
   fullName: z.string().trim().min(1, 'Please enter your name.').max(120),
@@ -41,7 +41,7 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
     password,
     options: {
       data: { full_name: fullName },
-      emailRedirectTo: `${siteUrl()}/auth/callback?next=/dashboard`,
+      emailRedirectTo: `${await siteUrl()}/auth/callback?next=/dashboard`,
     },
   })
   if (error) return { error: error.message }
@@ -112,7 +112,7 @@ export async function requestPasswordReset(
 
   const supabase = await createClient()
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${siteUrl()}/auth/callback?next=/auth/update-password`,
+    redirectTo: `${await siteUrl()}/auth/callback?next=/auth/update-password`,
   })
   if (error) console.error('[auth] reset email failed:', error.message)
 
@@ -140,7 +140,7 @@ export async function resendVerificationEmail(email: string) {
   await supabase.auth.resend({
     type: 'signup',
     email,
-    options: { emailRedirectTo: `${siteUrl()}/auth/callback?next=/dashboard` },
+    options: { emailRedirectTo: `${await siteUrl()}/auth/callback?next=/dashboard` },
   })
 }
 

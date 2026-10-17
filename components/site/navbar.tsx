@@ -181,7 +181,7 @@ export function Navbar({ user }: { user?: NavbarUser } = {}) {
         </header>
 
         {mobileOpen && (
-            <div className="fixed inset-x-0 bottom-0 top-16 overflow-y-auto border-t border-white/10 bg-ink lg:hidden">
+            <div className="fixed inset-x-0 bottom-0 top-16 z-40 overflow-y-auto border-t border-white/10 bg-ink lg:hidden">
               <nav aria-label="Mobile" className="mx-auto flex max-w-6xl flex-col px-4 pb-10 pt-4">
                 <ul className="flex flex-col">
                   {primaryLinks.map((l) => (
