@@ -19,7 +19,7 @@ export function PageHero({
     <section className={cn('relative overflow-hidden bg-ink text-white', className)}>
       {image && (
         <div className="absolute inset-0">
-          <Image src={image} alt="" fill sizes="100vw" className="object-cover opacity-20" />
+          <Image src={image} alt="" fill sizes="100vw" className="object-cover opacity-40" />
           <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/90 to-ink/60" />
         </div>
       )}
