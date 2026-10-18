@@ -4,7 +4,7 @@ import { AuthForm, AuthShell, AuthLink } from '@/components/auth/auth-form'
 import { requestPasswordReset } from '@/actions/auth'
 
 export const metadata: Metadata = {
-  title: 'Reset Password — Neural Think Labs',
+  title: 'Reset Password',
 }
 
 export default function ResetPasswordPage() {

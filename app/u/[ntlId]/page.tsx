@@ -15,6 +15,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: p ? p.name : 'Profile not found', robots: { index: false, follow: false } }
 }
 
+const row = 'flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 hover:bg-slate-50'
+
 export default async function PublicProfilePage({ params }: Props) {
   const { ntlId } = await params
   const p = await getPublicProfile(ntlId)
@@ -46,29 +48,28 @@ export default async function PublicProfilePage({ params }: Props) {
             <ul className="mt-4 flex flex-col gap-2">
               {p.projects.map((g) => (
                 <li key={g.slug}>
-                  <Link href={`/goals/${g.slug}`} className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 hover:bg-slate-50">
+                  <Link href={`/goals/${g.slug}`} className={row}>
                     <span className="text-sm font-semibold text-ink">{g.title}</span>
                     <span className="shrink-0 text-xs text-slate-600">{g.roleLabel}</span>
                   </Link>
                 </li>
               ))}
-            {p.portfolio.length > 0 && (
-              <section className="mt-12">
-                <SectionLabel>Portfolio</SectionLabel>
-                <ul className="mt-4 flex flex-col gap-2">
-                  {p.portfolio.map((x) => (
-                    <li key={x.name}>
-                      <Link href="/portfolio" className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 hover:bg-slate-50">
-                        <span className="text-sm font-semibold text-ink">{x.name}</span>
-                        <span className="shrink-0 text-xs text-slate-600">{x.roleLabel}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-            // and change the empty-state condition to:
-            // p.projects.length === 0 && p.portfolio.length === 0 && p.posts.length === 0
+            </ul>
+          </section>
+        )}
+
+        {p.portfolio.length > 0 && (
+          <section className="mt-12">
+            <SectionLabel>Portfolio</SectionLabel>
+            <ul className="mt-4 flex flex-col gap-2">
+              {p.portfolio.map((x) => (
+                <li key={x.name}>
+                  <Link href="/portfolio" className={row}>
+                    <span className="text-sm font-semibold text-ink">{x.name}</span>
+                    <span className="shrink-0 text-xs text-slate-600">{x.roleLabel}</span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </section>
         )}
@@ -79,7 +80,7 @@ export default async function PublicProfilePage({ params }: Props) {
             <ul className="mt-4 flex flex-col gap-2">
               {p.posts.map((s) => (
                 <li key={s.slug}>
-                  <Link href={`/stories/${s.slug}`} className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 hover:bg-slate-50">
+                  <Link href={`/stories/${s.slug}`} className={row}>
                     <span className="text-sm font-semibold text-ink">{s.title}</span>
                     {s.publishedAt && <span className="shrink-0 text-xs text-slate-600">{formatDate(s.publishedAt)}</span>}
                   </Link>
@@ -89,7 +90,7 @@ export default async function PublicProfilePage({ params }: Props) {
           </section>
         )}
 
-        {p.projects.length === 0 && p.posts.length === 0 && (
+        {p.projects.length === 0 && p.portfolio.length === 0 && p.posts.length === 0 && (
           <p className="mt-12 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-600">
             Nothing credited yet.
           </p>

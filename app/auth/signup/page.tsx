@@ -4,7 +4,7 @@ import { AuthForm, AuthShell, AuthLink } from '@/components/auth/auth-form'
 import { signUp } from '@/actions/auth'
 
 export const metadata: Metadata = {
-  title: 'Sign Up — Neural Think Labs',
+  title: 'Sign Up',
 }
 
 export default function SignUpPage() {

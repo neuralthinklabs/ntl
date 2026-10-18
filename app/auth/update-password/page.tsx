@@ -4,7 +4,7 @@ import { AuthForm, AuthShell } from '@/components/auth/auth-form'
 import { updatePassword } from '@/actions/auth'
 
 export const metadata: Metadata = {
-  title: 'Set New Password — Neural Think Labs',
+  title: 'Set New Password',
 }
 
 export default function UpdatePasswordPage() {

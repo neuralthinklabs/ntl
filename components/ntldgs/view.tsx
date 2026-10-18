@@ -77,8 +77,8 @@ export function NtldgsView({ slug }: { slug: string }) {
         <div className="rounded-2xl bg-ink px-6 py-12 text-center sm:px-10">
           <h2 className="text-balance text-2xl font-semibold tracking-tight text-white sm:text-3xl">Ready to build a more flourishing future?</h2>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-white/70">See how the 12 goals connect. Be part of the journey.</p>
-          <div className="mt-7 justify-center gap-3">
-            <Link href="/volunteer" className="mt-7 inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-brand-foreground hover:brightness-110">
+          <div className="mt-7 flex justify-center">
+            <Link href="/volunteer" className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-brand-foreground hover:brightness-110">
                 Become a volunteer <ArrowRight className="size-4" />
             </Link>
           </div>

@@ -4,7 +4,7 @@ import { AuthForm, AuthShell, AuthLink } from '@/components/auth/auth-form'
 import { resendVerification } from '@/actions/auth'
 
 export const metadata: Metadata = {
-  title: 'Resend Verification Email — Neural Think Labs',
+  title: 'Resend Verification Email',
 }
 
 export default function ResendVerificationPage() {

@@ -17,7 +17,7 @@ import { PageHero } from '@/components/site/page-hero'
 import { IconTile, SectionLabel } from '@/components/site/ui'
 
 export const metadata: Metadata = {
-  title: 'About — Neural Think Labs',
+  title: 'About',
   description:
     'A global ecosystem for learning, innovation and real-world impact.',
 }

@@ -7,7 +7,7 @@ import { brandSocials } from '@/components/site/brand-icons'
 import { ContactForm } from '@/components/contact/contact-form'
 
 export const metadata: Metadata = {
-  title: 'Contact — Neural Think Labs',
+  title: 'Contact',
   description:
     'Have a question, partnership idea, or just want to say hello? We would love to hear from you.',
 }

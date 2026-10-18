@@ -6,7 +6,7 @@ import { getAllPortfolioItems } from '@/lib/portfolio'
 import { getPortfolioWithPeople } from '@/lib/portfolio'
 
 export const metadata: Metadata = {
-  title: 'Portfolio — Neural Think Labs',
+  title: 'Portfolio',
   description:
     'Products, services, ventures and more — built by our teams and partners, and designed for real-world impact.',
 }
