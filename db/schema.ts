@@ -9,6 +9,7 @@ import {
   jsonb,
   primaryKey,
   index,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core'
 import { relations, sql } from 'drizzle-orm'
 
@@ -449,6 +450,32 @@ export const adminAuditLog = pgTable(
     createdAtIdx: index('admin_audit_log_created_at_idx').on(t.createdAt),
   }),
 )
+
+// ---------------------------------------------------------------------------
+// NTL Atlas: zones -> subzones -> clusters (migration 0011)
+// ---------------------------------------------------------------------------
+
+export const atlasLevelEnum = pgEnum('atlas_level', ['zone', 'subzone', 'cluster'])
+
+export const atlasUnits = pgTable('atlas_units', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  code: text('code').notNull().unique(),
+  name: text('name').notNull(),
+  level: atlasLevelEnum('level').notNull(),
+  parentId: uuid('parent_id').references((): AnyPgColumn => atlasUnits.id, { onDelete: 'restrict' }),
+  summary: text('summary'),
+  demographics: text('demographics'),
+  problemDomains: text('problem_domains').array().notNull().default(sql`'{}'::text[]`),
+  resources: text('resources').array().notNull().default(sql`'{}'::text[]`),
+  initiatives: text('initiatives'),
+  dataSources: text('data_sources'),
+  boundary: jsonb('boundary'),
+  verified: boolean('verified').notNull().default(false),
+  published: boolean('published').notNull().default(false),
+  sortOrder: integer('sort_order').notNull().default(0),
+  lastUpdated: timestamp('last_updated', { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
 
 // ---------------------------------------------------------------------------
 // Relations (Drizzle relational query API)

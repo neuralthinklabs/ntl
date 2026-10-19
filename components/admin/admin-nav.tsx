@@ -14,6 +14,7 @@ import {
   Megaphone,
   Boxes,
   Users,
+  MapPinned,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -26,6 +27,7 @@ const items = [
   { href: '/admin/events', label: 'Events', icon: CalendarDays },
   { href: '/admin/campaigns', label: 'Campaigns', icon: Megaphone },
   { href: '/admin/portfolio', label: 'Portfolio', icon: Boxes },
+  { href: '/admin/atlas', label: 'Atlas', icon: MapPinned },
   { href: '/admin/contact', label: 'Contact messages', icon: Mail },
   { href: '/admin/users', label: 'Users', icon: Users },
 ]

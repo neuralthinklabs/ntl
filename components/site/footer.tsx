@@ -6,7 +6,8 @@ const columns = [
   {
     title: 'Explore',
     links: [
-      { href: '/about', label: 'About' },
+      { href: '/#about', label: 'About' },
+      { href: '/atlas', label: 'Atlas' },
       { href: '/ntldgs', label: 'The 12 Goals' },
       { href: '/portfolio', label: 'Portfolio' },
       { href: '/stories', label: 'Stories' },

@@ -2,20 +2,24 @@ import { desc, eq } from 'drizzle-orm'
 import { SiteShell } from '@/components/site/site-shell'
 import { HomeHero } from '@/components/home/hero'
 import { CurrentFocus, FeaturedStory, HomeCta, HomeStats, HowItWorks, NtldgTeaser } from '@/components/home/sections'
+import { AboutSection } from '@/components/home/about-section'
+import { AtlasTeaser } from '@/components/home/atlas-teaser'
 import { GoalSprite } from '@/components/ntldgs/goal-icon'
 import { db } from '@/db'
 import { goals, portfolioItems } from '@/db/schema'
 import { getHomeStats } from '@/lib/stats'
 import { getUpcomingEvents } from '@/lib/events'
 import { getLatestStory } from '@/lib/stories'
+import { getAtlasCounts } from '@/lib/atlas'
 
 export default async function HomePage() {
-  const [stats, goal, project, events, story] = await Promise.all([
+  const [stats, goal, project, events, story, atlasCounts] = await Promise.all([
     getHomeStats(),
     db.query.goals.findFirst({ where: eq(goals.status, 'in_progress'), orderBy: [desc(goals.updatedAt)] }),
     db.query.portfolioItems.findFirst({ where: eq(portfolioItems.status, 'In Progress') }),
     getUpcomingEvents(1),
     getLatestStory(),
+    getAtlasCounts(),
   ])
 
   return (
@@ -23,6 +27,8 @@ export default async function HomePage() {
       <GoalSprite />
       <HomeHero />
       <HomeStats stats={stats} />
+      <AboutSection />
+      <AtlasTeaser counts={atlasCounts} />
       <CurrentFocus
         goal={goal ?? null}
         project={project ?? null}

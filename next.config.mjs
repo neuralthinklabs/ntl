@@ -20,6 +20,9 @@ const nextConfig = {
     // Server Actions only carry small form payloads again.
     serverActions: { bodySizeLimit: '2mb' },
   },
+  async redirects() {
+    return [{ source: '/about', destination: '/#about', permanent: true }]
+  },
   async headers() {
     return [
       {

@@ -11,14 +11,15 @@ import { logout } from '@/actions/auth'
 // Main destinations. Everything that asks something of the visitor lives in
 // "Get involved", and the single filled button is reserved for the core action.
 const primaryLinks = [
-  { href: '/about', label: 'About' },
+  { href: '/#about', label: 'About' },
+  { href: '/atlas', label: 'Atlas' },
   { href: '/ntldgs', label: '12 Goals' },
   { href: '/portfolio', label: 'Portfolio' },
-  { href: '/events', label: 'Events' },
   { href: '/stories', label: 'Stories' },
 ]
 
 const involveLinks = [
+  { href: '/events', label: 'Events', hint: 'Workshops, talks and meetups' },
   { href: '/volunteer', label: 'Volunteer', hint: 'Share your time and skills' },
   { href: '/support', label: 'Contribute', hint: 'Back a campaign' },
   { href: '/contact', label: 'Contact', hint: 'Questions and partnerships' },
@@ -42,7 +43,7 @@ export function Navbar({ user }: { user?: NavbarUser } = {}) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [menu, setMenu] = useState<OpenMenu>(null)
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
+  const isActive = (href: string) => !href.includes('#') && (pathname === href || pathname.startsWith(`${href}/`))
   const involvedActive = involveLinks.some((l) => isActive(l.href))
   const name = user?.fullName || user?.email.split('@')[0] || 'Account'
 
