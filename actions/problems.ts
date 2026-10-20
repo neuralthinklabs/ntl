@@ -14,6 +14,7 @@ import {
   problemStatusEmail,
 } from '@/lib/email'
 import { requireAdminAction } from '@/lib/auth/admin'
+import { logAdmin } from '@/lib/audit'
 import { MAX_FILE_SIZE_BYTES, MAX_FILES } from '@/lib/upload-limits'
 import { hasValidSignatureBytes } from '@/lib/file-signature'
 import { awardPoints } from '@/lib/points'
@@ -221,6 +222,14 @@ export async function updateProblemStatus(
       updatedAt: new Date(),
     })
     .where(eq(problems.id, parsed.problemId))
+
+  await logAdmin({
+    actorId: user.id,
+    action: 'problem_status',
+    entity: 'problem',
+    entityId: parsed.problemId,
+    summary: `${before.status} -> ${parsed.status}`,
+  })
 
   // Tell the submitter when the status (not just a note) changed.
   if (before.status !== parsed.status && before.submitter?.email) {

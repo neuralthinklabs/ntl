@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { db } from '@/db'
 import { contributions, goals, profiles } from '@/db/schema'
 import { runAdmin } from '@/lib/admin-action'
+import { logAdmin } from '@/lib/audit'
 import { awardPoints } from '@/lib/points'
 import { sendEmail, pledgeConfirmedEmail } from '@/lib/email'
 import { money } from '@/lib/format'
@@ -71,6 +72,13 @@ export async function confirmContribution(id: string, paymentRef: string): Promi
           html: pledgeConfirmedEmail(done.goal?.title ?? 'our work', money(done.c.amountCents ?? 0)),
         })
       }
+      await logAdmin({
+        actorId: admin.id,
+        action: 'contribution_confirm',
+        entity: 'contribution',
+        entityId: id,
+        summary: `${money(done.c.amountCents ?? 0)}${ref ? ` ref ${ref}` : ''}`,
+      })
       refresh(done.goal?.slug)
       return { success: 'Payment confirmed and the progress bar updated.' }
     } catch (e) {
@@ -88,6 +96,7 @@ export async function rejectContribution(id: string): Promise<ActionState> {
       .where(and(eq(contributions.id, id), eq(contributions.status, 'pledged')))
       .returning({ id: contributions.id })
     if (!c) return { error: 'This pledge is no longer waiting for confirmation.' }
+    await logAdmin({ actorId: admin.id, action: 'contribution_reject', entity: 'contribution', entityId: id })
     refresh()
     return { success: 'Pledge rejected.' }
   })
@@ -95,7 +104,7 @@ export async function rejectContribution(id: string): Promise<ActionState> {
 
 /** A confirmed payment was returned: take it back out of the progress bar. */
 export async function refundContribution(id: string): Promise<ActionState> {
-  return runAdmin(async () => {
+  return runAdmin(async (admin) => {
     try {
       const slug = await db.transaction(async (tx) => {
         const [c] = await tx
@@ -115,6 +124,7 @@ export async function refundContribution(id: string): Promise<ActionState> {
           .returning({ slug: goals.slug })
         return g?.slug ?? null
       })
+      await logAdmin({ actorId: admin.id, action: 'contribution_refund', entity: 'contribution', entityId: id })
       refresh(slug)
       return { success: 'Marked as refunded and removed from the progress bar.' }
     } catch (e) {

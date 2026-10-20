@@ -1,28 +1,36 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { desc, eq } from 'drizzle-orm'
+import { count, desc, eq } from 'drizzle-orm'
 import { SiteShell } from '@/components/site/site-shell'
 import { PageHero } from '@/components/site/page-hero'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { problems } from '@/db/schema'
 import { StatusBadge } from '@/components/problems/status-badge'
+import { Pager } from '@/components/site/pager'
+import { parsePage, totalPages } from '@/lib/pagination'
 
 export const metadata: Metadata = {
   title: 'My Problems — Neural Think Labs',
 }
 
-export default async function MyProblemsPage() {
+export default async function MyProblemsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  const { page, limit, offset } = parsePage(await searchParams)
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login?next=/problems/mine')
 
-  const mine = await db.query.problems.findMany({
-    where: eq(problems.submittedBy, user.id),
-    orderBy: [desc(problems.createdAt)],
-  })
+  const [mine, [{ value: total }]] = await Promise.all([
+    db.query.problems.findMany({
+      where: eq(problems.submittedBy, user.id),
+      orderBy: [desc(problems.createdAt)],
+      limit,
+      offset,
+    }),
+    db.select({ value: count() }).from(problems).where(eq(problems.submittedBy, user.id)),
+  ])
 
   return (
     <SiteShell>
@@ -61,6 +69,7 @@ export default async function MyProblemsPage() {
             ))}
           </div>
         )}
+        <Pager page={page} totalPages={totalPages(total, limit)} basePath="/problems/mine" />
       </div>
     </SiteShell>
   )

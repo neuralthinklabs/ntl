@@ -10,6 +10,7 @@ import { runAdmin } from '@/lib/admin-action'
 import { slugify } from '@/lib/slug'
 import { isValidTimeZone, zonedLocalToDate } from '@/lib/tz'
 import { awardPoints } from '@/lib/points'
+import { promoteFromWaitlist } from '@/lib/waitlist'
 import type { ActionState } from '../auth'
 
 const eventSchema = z.object({
@@ -126,6 +127,10 @@ export async function setRegistrationStatus(
       }
     })
 
+    // An admin cancelling someone frees a seat too.
+    if (status === 'cancelled') await promoteFromWaitlist(eventId)
+
+    revalidatePath('/events')
     revalidatePath(`/admin/events/${eventId}`)
     revalidatePath('/dashboard')
     return { success: 'Updated.' }

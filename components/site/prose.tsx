@@ -4,7 +4,7 @@ import { Fragment } from 'react'
 // Supports: paragraphs, "## " headings, "- " bullets, **bold**, [text](https://url).
 // Everything is rendered as React text nodes (escaped); links are limited to
 // http(s) and site-relative URLs.
-const INLINE = /(\*\*[^*]+\*\*|\[[^\]]+\]\((?:https?:\/\/|\/)[^)\s]+\))/g
+const INLINE = /(\*\*[^*]+\*\*|\[[^\]]+\]\((?:https?:\/\/|\/(?!\/))[^)\s]+\))/g
 
 function inline(text: string) {
   return text.split(INLINE).map((part, i) => {

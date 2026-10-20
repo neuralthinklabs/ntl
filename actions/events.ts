@@ -9,6 +9,7 @@ import { events, eventRegistrations, profiles } from '@/db/schema'
 import { sendEmail, eventRegistrationEmail } from '@/lib/email'
 import { awardPoints } from '@/lib/points'
 import { formatEventWhen } from '@/lib/events'
+import { promoteFromWaitlist } from '@/lib/waitlist'
 import type { ActionState } from './auth'
 
 const idSchema = z.string().uuid()
@@ -116,6 +117,9 @@ export async function cancelRegistration(eventId: string): Promise<ActionState> 
         sql`${eventRegistrations.status} in ('registered','waitlisted')`,
       ),
     )
+
+  // A freed seat goes to the longest-waiting person on the waitlist.
+  await promoteFromWaitlist(eventId)
 
   revalidatePath('/events')
   revalidatePath(`/admin/events/${eventId}`)

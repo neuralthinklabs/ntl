@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { desc, eq } from 'drizzle-orm'
+import { count, desc, eq } from 'drizzle-orm'
 import { SiteShell } from '@/components/site/site-shell'
 import { PageHero } from '@/components/site/page-hero'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { contributions } from '@/db/schema'
 import { money } from '@/lib/format'
+import { Pager } from '@/components/site/pager'
+import { parsePage, totalPages } from '@/lib/pagination'
 
 export const metadata: Metadata = { title: 'My pledges', robots: { index: false } }
 
@@ -17,18 +19,24 @@ const LABEL: Record<string, { text: string; cls: string }> = {
   refunded: { text: 'Refunded', cls: 'bg-red-100 text-red-700' },
 }
 
-export default async function MyPledgesPage() {
+export default async function MyPledgesPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  const { page, limit, offset } = parsePage(await searchParams)
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login?next=/contributions/mine')
 
-  const rows = await db.query.contributions.findMany({
-    where: eq(contributions.userId, user.id),
-    orderBy: [desc(contributions.createdAt)],
-    with: { goal: true },
-  })
+  const [rows, [{ value: total }]] = await Promise.all([
+    db.query.contributions.findMany({
+      where: eq(contributions.userId, user.id),
+      orderBy: [desc(contributions.createdAt)],
+      with: { goal: true },
+      limit,
+      offset,
+    }),
+    db.select({ value: count() }).from(contributions).where(eq(contributions.userId, user.id)),
+  ])
 
   return (
     <SiteShell>
@@ -51,6 +59,7 @@ export default async function MyPledgesPage() {
             ))}
           </ul>
         )}
+        <Pager page={page} totalPages={totalPages(total, limit)} basePath="/contributions/mine" />
       </div>
     </SiteShell>
   )
