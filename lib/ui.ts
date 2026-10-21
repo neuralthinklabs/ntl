@@ -2,8 +2,9 @@
 const focus =
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand'
 
+// The one text-field style for the whole app (public, auth and admin forms).
 export const fieldClass =
-  'w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-slate-400 focus:border-brand-muted focus:ring-2 focus:ring-brand/30 disabled:bg-slate-50 disabled:text-slate-500'
+  'w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-slate-500 focus:border-brand-muted focus:ring-2 focus:ring-brand/30 disabled:bg-slate-50 disabled:text-slate-500'
 
 const btn =
   'inline-flex h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold transition-all disabled:opacity-60 ' +

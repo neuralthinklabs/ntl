@@ -132,7 +132,6 @@ export const problems = pgTable('problems', {
   context: text('context'),
   evidenceNotes: text('evidence_notes'),
   status: problemStatusEnum('status').notNull().default('submitted'),
-  attachmentsIncomplete: boolean('attachments_incomplete').notNull().default(false),
   adminNotes: text('admin_notes'),
   reviewedBy: uuid('reviewed_by').references(() => profiles.id),
   reviewedAt: timestamp('reviewed_at', { withTimezone: true }),

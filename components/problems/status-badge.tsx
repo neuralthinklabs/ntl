@@ -1,5 +1,7 @@
 import { cn } from '@/lib/utils'
 
+// Named ProblemStatusBadge so it is never confused with the tone-based
+// StatusBadge in components/site/ui.tsx.
 const labels: Record<string, string> = {
   submitted: 'Submitted',
   in_review: 'In Review',
@@ -18,7 +20,7 @@ const colors: Record<string, string> = {
   declined: 'bg-red-100 text-red-600',
 }
 
-export function StatusBadge({ status }: { status: string }) {
+export function ProblemStatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(

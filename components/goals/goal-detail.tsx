@@ -92,7 +92,7 @@ export function GoalDetail({
             )}
             {updates.map((u) => (
               <article key={u.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-xs font-medium text-slate-400">{u.createdAt}</p>
+                <p className="text-xs font-medium text-slate-600">{u.createdAt}</p>
                 <h3 className="mt-1 text-base font-semibold text-ink">{u.title}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{u.body}</p>
               </article>
@@ -156,7 +156,7 @@ function InfoCard({ icon: Icon, label, value }: { icon: typeof Users; label: str
       <span className="inline-flex size-9 items-center justify-center rounded-lg bg-brand/10 text-brand-muted">
         <Icon className="size-4" />
       </span>
-      <p className="mt-3 text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
+      <p className="mt-3 text-xs font-medium uppercase tracking-wide text-slate-600">{label}</p>
       <p className="mt-0.5 text-sm font-semibold text-ink">{value}</p>
     </div>
   )
@@ -176,7 +176,7 @@ function MilestoneStatus({ status }: { status: string }) {
       </span>
     )
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400">
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600">
       <Circle className="size-4" /> Upcoming
     </span>
   )

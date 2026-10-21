@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { Paperclip } from 'lucide-react'
-import { StatusBadge } from '@/components/problems/status-badge'
+import { ProblemStatusBadge } from '@/components/problems/status-badge'
 import { updateProblemStatus } from '@/actions/problems'
 
 const statuses = ['submitted', 'in_review', 'accepted', 'in_progress', 'resolved', 'declined'] as const
@@ -68,7 +68,7 @@ export function AdminProblemRow({
           </p>
           {goalLabel && <p className="mt-1 text-xs font-medium text-brand-muted">Goal: {goalLabel}</p>}
         </div>
-        <StatusBadge status={currentStatus} />
+        <ProblemStatusBadge status={currentStatus} />
       </div>
 
       <p className={`mt-3 whitespace-pre-wrap text-sm text-slate-700 ${open ? '' : 'line-clamp-3'}`}>{description}</p>

@@ -18,6 +18,7 @@ import { logAdmin } from '@/lib/audit'
 import { MAX_FILE_SIZE_BYTES, MAX_FILES } from '@/lib/upload-limits'
 import { hasValidSignatureBytes } from '@/lib/file-signature'
 import { awardPoints } from '@/lib/points'
+import { checkAchievements } from '@/lib/achievements'
 import { goalIndexBySlug } from '@/lib/ntldgs'
 import type { ActionState } from './auth'
 
@@ -159,6 +160,7 @@ export async function submitProblem(_prev: ActionState, formData: FormData): Pro
       meta: 'Problem submitted · +25 pts',
       relatedId: row.id,
     })
+    await checkAchievements(user.id, tx)
     return row
   })
 

@@ -1,4 +1,4 @@
-import { and, desc, eq, isNotNull, lte } from 'drizzle-orm'
+import { and, count, desc, eq, isNotNull, isNull, lte, or } from 'drizzle-orm'
 import { db } from '@/db'
 import { stories } from '@/db/schema'
 
@@ -10,6 +10,8 @@ export type StoryCardData = {
   excerpt: string
   image: string | null
 }
+
+export const STORIES_PAGE_SIZE = 12
 
 const dateFmt = (d: Date) =>
   d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -34,6 +36,36 @@ export async function getPublishedStories(limit = 50): Promise<StoryCardData[]> 
     limit,
   })
   return rows.map(toCard)
+}
+
+/** One page of published stories, optionally filtered by category (server-side). */
+export async function getStoriesPage({ page, category }: { page: number; category?: string }) {
+  // Rows with no category are shown as "News" (see toCard), so filter the same way.
+  const byCategory =
+    !category || category === 'All'
+      ? undefined
+      : category === 'News'
+        ? or(eq(stories.category, 'News'), isNull(stories.category))
+        : eq(stories.category, category)
+  const where = and(live(), byCategory)
+
+  const [rows, [{ value }]] = await Promise.all([
+    db.query.stories.findMany({
+      where,
+      orderBy: [desc(stories.publishedAt)],
+      limit: STORIES_PAGE_SIZE,
+      offset: (page - 1) * STORIES_PAGE_SIZE,
+    }),
+    db.select({ value: count() }).from(stories).where(where),
+  ])
+  return { items: rows.map(toCard), total: value }
+}
+
+/** Categories that actually have a published story, with "All" first. */
+export async function getStoryCategoryList() {
+  const rows = await db.selectDistinct({ category: stories.category }).from(stories).where(live())
+  const set = new Set(rows.map((r) => r.category ?? 'News'))
+  return ['All', ...Array.from(set).sort()]
 }
 
 export async function getLatestStory() {

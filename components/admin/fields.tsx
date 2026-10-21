@@ -2,10 +2,11 @@
 
 import { useFormStatus } from 'react-dom'
 import { cn } from '@/lib/utils'
+import { fieldClass } from '@/lib/ui'
 import type { ActionState } from '@/actions/auth'
 
-export const fieldClass =
-  'w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-slate-500 focus:border-brand focus:ring-2 focus:ring-brand/30 disabled:bg-slate-50 disabled:text-slate-500'
+// Re-exported so existing admin imports keep working; the style lives in lib/ui.ts.
+export { fieldClass }
 
 export function Field({
   label,
@@ -22,7 +23,7 @@ export function Field({
     <label className={cn('block', className)}>
       <span className="mb-1.5 block text-sm font-medium text-ink">{label}</span>
       {children}
-      {hint && <span className="mt-1 block text-xs text-slate-500">{hint}</span>}
+      {hint && <span className="mt-1 block text-xs text-slate-600">{hint}</span>}
     </label>
   )
 }

@@ -8,6 +8,7 @@ import { contributions, goals, profiles } from '@/db/schema'
 import { runAdmin } from '@/lib/admin-action'
 import { logAdmin } from '@/lib/audit'
 import { awardPoints } from '@/lib/points'
+import { checkAchievements } from '@/lib/achievements'
 import { sendEmail, pledgeConfirmedEmail } from '@/lib/email'
 import { money } from '@/lib/format'
 import type { ActionState } from '../auth'
@@ -61,6 +62,7 @@ export async function confirmContribution(id: string, paymentRef: string): Promi
           meta: `Contributed ${money(c.amountCents ?? 0)} · +15 pts`,
           relatedId: c.goalId ?? undefined,
         })
+        await checkAchievements(c.userId, tx)
         return { c, goal }
       })
 

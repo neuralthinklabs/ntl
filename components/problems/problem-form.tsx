@@ -1,5 +1,7 @@
 'use client'
 
+import { fieldClass } from '@/lib/ui'
+
 import { useActionState, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Check } from 'lucide-react'
@@ -13,8 +15,6 @@ const steps = ['Details', 'Context', 'Evidence', 'Review']
 const DRAFT_KEY = 'ntl-problem-draft-v1'
 const TEXT_FIELDS = ['title', 'description', 'category', 'location', 'context', 'evidenceNotes'] as const
 
-const fieldClass =
-  'w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-slate-500 focus:border-brand focus:ring-2 focus:ring-brand/30'
 
 export function ProblemForm({
   isLoggedIn,

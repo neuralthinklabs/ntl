@@ -43,12 +43,12 @@ export default async function AtlasUnitPage({ params }: Props) {
             <li><Link href="/atlas" className="font-medium text-brand-muted hover:underline">Atlas</Link></li>
             {trail.map((t) => (
               <li key={t.id} className="flex items-center gap-1">
-                <ChevronRight className="size-4 text-slate-400" aria-hidden />
+                <ChevronRight className="size-4 text-slate-600" aria-hidden />
                 <Link href={`/atlas/${t.code}`} className="font-medium text-brand-muted hover:underline">{t.name}</Link>
               </li>
             ))}
             <li className="flex items-center gap-1" aria-current="page">
-              <ChevronRight className="size-4 text-slate-400" aria-hidden />
+              <ChevronRight className="size-4 text-slate-600" aria-hidden />
               <span className="text-ink">{unit.name}</span>
             </li>
           </ol>

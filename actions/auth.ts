@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { profiles } from '@/db/schema'
 import { checkAuthLimits, recordAuthAttempt } from '@/lib/rate-limit'
-import { clientIp } from '@/lib/request'
+import { getClientIp as clientIp } from '@/lib/ip'
 import { safeNext } from '@/lib/safe-redirect'
 import { siteUrl } from '@/lib/site-url'
 

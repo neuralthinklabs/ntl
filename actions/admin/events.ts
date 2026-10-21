@@ -7,9 +7,11 @@ import { revalidatePath } from 'next/cache'
 import { db } from '@/db'
 import { events, eventRegistrations } from '@/db/schema'
 import { runAdmin } from '@/lib/admin-action'
+import { logAdmin } from '@/lib/audit'
 import { slugify } from '@/lib/slug'
 import { isValidTimeZone, zonedLocalToDate } from '@/lib/tz'
 import { awardPoints } from '@/lib/points'
+import { checkAchievements } from '@/lib/achievements'
 import { promoteFromWaitlist } from '@/lib/waitlist'
 import type { ActionState } from '../auth'
 
@@ -33,7 +35,7 @@ function refresh() {
 }
 
 export async function saveEvent(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  return runAdmin(async () => {
+  return runAdmin(async (admin) => {
     const parsed = eventSchema.safeParse({
       id: formData.get('id') || undefined,
       title: formData.get('title'),
@@ -73,18 +75,31 @@ export async function saveEvent(_prev: ActionState, formData: FormData): Promise
 
     if (d.id) {
       await db.update(events).set(values).where(eq(events.id, d.id))
+      // Raising the capacity (or removing it) frees seats: let the waitlist in.
+      const promoted = await promoteFromWaitlist(d.id)
+      await logAdmin({
+        actorId: admin.id,
+        action: 'event_update',
+        entity: 'event',
+        entityId: d.id,
+        summary: promoted ? `${d.title} (${promoted} moved off the waitlist)` : d.title,
+      })
       refresh()
+      revalidatePath(`/admin/events/${d.id}`)
       return { success: 'Saved.' }
     }
     const [row] = await db.insert(events).values(values).returning({ id: events.id })
+    await logAdmin({ actorId: admin.id, action: 'event_create', entity: 'event', entityId: row.id, summary: d.title })
     refresh()
     redirect(`/admin/events/${row.id}?created=1`)
   })
 }
 
 export async function deleteEvent(id: string): Promise<ActionState> {
-  return runAdmin(async () => {
+  return runAdmin(async (admin) => {
+    const row = await db.query.events.findFirst({ where: eq(events.id, id) })
     await db.delete(events).where(eq(events.id, id))
+    await logAdmin({ actorId: admin.id, action: 'event_delete', entity: 'event', entityId: id, summary: row?.title })
     refresh()
     redirect('/admin/events')
   })
@@ -97,7 +112,7 @@ export async function setRegistrationStatus(
   userId: string,
   status: 'registered' | 'waitlisted' | 'cancelled' | 'attended',
 ): Promise<ActionState> {
-  return runAdmin(async () => {
+  return runAdmin(async (admin) => {
     z.object({ eventId: z.string().uuid(), userId: z.string().uuid() }).parse({ eventId, userId })
 
     await db.transaction(async (tx) => {
@@ -124,16 +139,23 @@ export async function setRegistrationStatus(
           meta: `Event attended · +${POINTS_FOR_ATTENDING} pts`,
           relatedId: eventId,
         })
+        await checkAchievements(userId, tx)
       }
     })
 
     // An admin cancelling someone frees a seat too.
     if (status === 'cancelled') await promoteFromWaitlist(eventId)
 
+    await logAdmin({
+      actorId: admin.id,
+      action: 'registration_status',
+      entity: 'event',
+      entityId: eventId,
+      summary: `${userId} -> ${status}`,
+    })
     revalidatePath('/events')
     revalidatePath(`/admin/events/${eventId}`)
     revalidatePath('/dashboard')
     return { success: 'Updated.' }
   })
 }
-

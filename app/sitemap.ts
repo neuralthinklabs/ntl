@@ -7,7 +7,7 @@ import { getAtlasCodes } from '@/lib/atlas'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-  const staticPaths = ['', '/atlas', '/ntldgs', '/portfolio', '/events', '/stories', '/support', '/volunteer', '/problems', '/contact', '/faq', '/privacy', '/terms']
+  const staticPaths = ['', '/get-involved', '/atlas', '/ntldgs', '/portfolio', '/events', '/stories', '/support', '/volunteer', '/problems', '/contact', '/faq', '/privacy', '/terms']
 
   let storyRows: { slug: string; updatedAt: Date }[] = []
   let campaignRows: { slug: string; updatedAt: Date }[] = []

@@ -1,42 +1,37 @@
-'use client'
-
-import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { StoryCardData } from '@/lib/stories'
 
-export function StoriesList({ items, categories }: { items: StoryCardData[]; categories: string[] }) {
-  const [active, setActive] = useState('All')
-  const filtered = useMemo(() => (active === 'All' ? items : items.filter((s) => s.category === active)), [active, items])
-
+// Server component: category pills are links, so filtering and paging happen
+// in the database and every filtered view has its own URL.
+export function StoriesList({ items, categories, active }: { items: StoryCardData[]; categories: string[]; active: string }) {
   return (
     <div>
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by category">
+      <nav className="flex flex-wrap gap-2" aria-label="Filter by category">
         {categories.map((c) => (
-          <button
+          <Link
             key={c}
-            type="button"
-            aria-pressed={active === c}
-            onClick={() => setActive(c)}
+            href={c === 'All' ? '/stories' : `/stories?category=${encodeURIComponent(c)}`}
+            aria-current={active === c ? 'true' : undefined}
             className={cn(
               'rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
               active === c ? 'bg-ink text-white' : 'bg-white text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50',
             )}
           >
             {c}
-          </button>
+          </Link>
         ))}
-      </div>
+      </nav>
 
-      {filtered.length === 0 ? (
+      {items.length === 0 ? (
         <p className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-600">
-          {items.length === 0 ? 'No stories published yet. Check back soon.' : 'No stories in this category yet.'}
+          {active === 'All' ? 'No stories published yet. Check back soon.' : 'No stories in this category yet.'}
         </p>
       ) : (
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((s) => (
+          {items.map((s) => (
             <article key={s.slug} className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
               <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
                 {s.image && (

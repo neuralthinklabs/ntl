@@ -6,7 +6,6 @@ const columns = [
   {
     title: 'Explore',
     links: [
-      { href: '/#about', label: 'About' },
       { href: '/atlas', label: 'Atlas' },
       { href: '/ntldgs', label: 'The 12 Goals' },
       { href: '/portfolio', label: 'Portfolio' },
@@ -17,6 +16,7 @@ const columns = [
   {
     title: 'Get involved',
     links: [
+      { href: '/get-involved', label: 'All ways to help' },
       { href: '/problems', label: 'Submit a problem' },
       { href: '/volunteer', label: 'Volunteer' },
       { href: '/support', label: 'Contribute' },

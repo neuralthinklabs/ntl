@@ -7,6 +7,9 @@ import { fetchIsAdminRole } from '@/lib/auth/role-check'
 const PROTECTED_PREFIXES = ['/dashboard', '/profile', '/problems/mine', '/contributions', '/team']
 const ADMIN_PREFIXES = ['/admin']
 
+// Match whole path segments: "/team" and "/team/x" match, "/teams" does not.
+const matches = (path: string, prefix: string) => path === prefix || path.startsWith(`${prefix}/`)
+
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request })
 
@@ -34,8 +37,8 @@ export async function updateSession(request: NextRequest) {
   const userId = data?.claims?.sub as string | undefined
 
   const path = request.nextUrl.pathname
-  const needsAuth = PROTECTED_PREFIXES.some((p) => path.startsWith(p))
-  const needsAdmin = ADMIN_PREFIXES.some((p) => path.startsWith(p))
+  const needsAuth = PROTECTED_PREFIXES.some((p) => matches(path, p))
+  const needsAdmin = ADMIN_PREFIXES.some((p) => matches(path, p))
 
   if ((needsAuth || needsAdmin) && !userId) {
     const url = request.nextUrl.clone()

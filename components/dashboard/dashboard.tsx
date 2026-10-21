@@ -18,13 +18,14 @@ const baseNav = [
 ]
 
 export type ActivityItem = { id: string; title: string; meta: string; date: string; type: string }
+export type AchievementItem = { slug: string; title: string; description: string; earned: boolean }
 
 export function Dashboard({
   name,
   points,
   problemsSubmitted,
   eventsAttended,
-  achievementsCount,
+  achievements = [],
   activity,
   isAdmin = false,
   role = 'member',
@@ -36,7 +37,7 @@ export function Dashboard({
   points: number
   problemsSubmitted: number
   eventsAttended: number
-  achievementsCount: number
+  achievements?: AchievementItem[]
   activity: ActivityItem[]
   isAdmin?: boolean
   role?: string
@@ -45,6 +46,7 @@ export function Dashboard({
   openAssignments?: number
 }) {
   const pathname = usePathname()
+  const earnedCount = achievements.filter((a) => a.earned).length
 
   // Volunteers, core team and admins get a personal workspace link.
   const nav = isTeam
@@ -55,7 +57,7 @@ export function Dashboard({
     { label: 'Total points', value: points.toLocaleString(), icon: Sparkles },
     { label: 'Problems submitted', value: String(problemsSubmitted), icon: ListChecks },
     { label: 'Events attended', value: String(eventsAttended), icon: CalendarDays },
-    { label: 'Achievements', value: String(achievementsCount), icon: Trophy },
+    { label: 'Achievements', value: `${earnedCount}/${achievements.length}`, icon: Trophy },
   ]
 
   const initials = name.split(' ').map((p) => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()
@@ -69,7 +71,7 @@ export function Dashboard({
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-ink">{name}</p>
               <p className="truncate text-xs text-slate-600">{ROLE_LABELS[role] ?? (isAdmin ? 'Admin' : 'Member')}</p>
-              {ntlId && <p className="truncate font-mono text-[11px] text-slate-500">{ntlId}</p>}
+              {ntlId && <p className="truncate font-mono text-[11px] text-slate-600">{ntlId}</p>}
             </div>
           </div>
 
@@ -125,7 +127,7 @@ export function Dashboard({
 
           <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
             {stats.map((s) => (
-              <div key={s.label} id={s.label === 'Achievements' ? 'achievements' : undefined} className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div key={s.label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <span className="inline-flex size-9 items-center justify-center rounded-lg bg-brand/10 text-brand-muted">
                   <s.icon className="size-4" />
                 </span>
@@ -155,6 +157,36 @@ export function Dashboard({
               </div>
             ))}
           </div>
+
+          {achievements.length > 0 && (
+            <>
+              <h2 id="achievements" className="mt-10 scroll-mt-24 text-sm font-semibold uppercase tracking-wide text-slate-600">
+                Achievements
+              </h2>
+              <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                {achievements.map((a) => (
+                  <li
+                    key={a.slug}
+                    className={cn(
+                      'flex items-start gap-3 rounded-2xl border p-4',
+                      a.earned ? 'border-brand/30 bg-white shadow-sm' : 'border-dashed border-slate-300 bg-white/60',
+                    )}
+                  >
+                    <span className={cn('inline-flex size-10 shrink-0 items-center justify-center rounded-xl', a.earned ? 'bg-brand/10 text-brand-muted' : 'bg-slate-100 text-slate-500')}>
+                      <Trophy className="size-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-ink">
+                        {a.title}
+                        <span className="sr-only">{a.earned ? ' (earned)' : ' (locked)'}</span>
+                      </p>
+                      <p className="mt-0.5 text-xs text-slate-600">{a.description}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
       </div>
     </div>

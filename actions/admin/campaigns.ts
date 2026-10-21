@@ -7,6 +7,7 @@ import { revalidatePath } from 'next/cache'
 import { db } from '@/db'
 import { goals, goalMilestones, goalUpdates } from '@/db/schema'
 import { runAdmin } from '@/lib/admin-action'
+import { logAdmin } from '@/lib/audit'
 import { slugify } from '@/lib/slug'
 import { goalIndexBySlug } from '@/lib/ntldgs'
 import type { ActionState } from '../auth'
@@ -46,7 +47,7 @@ function refresh(slug?: string) {
 const toDate = (s?: string) => (s ? new Date(`${s}T00:00:00Z`) : null)
 
 export async function saveCampaign(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  return runAdmin(async () => {
+  return runAdmin(async (admin) => {
     const parsed = campaignSchema.safeParse({
       id: formData.get('id') || undefined,
       title: formData.get('title'),
@@ -87,21 +88,29 @@ export async function saveCampaign(_prev: ActionState, formData: FormData): Prom
     if (d.id) {
       const prev = await db.query.goals.findFirst({ where: eq(goals.id, d.id) })
       await db.update(goals).set(values).where(eq(goals.id, d.id))
+      // "Raised so far" is the public progress bar: record manual edits of it.
+      const raisedNote =
+        prev && prev.fundingRaisedCents !== values.fundingRaisedCents
+          ? `${d.title} (raised ${prev.fundingRaisedCents / 100} -> ${values.fundingRaisedCents / 100})`
+          : d.title
+      await logAdmin({ actorId: admin.id, action: 'campaign_update', entity: 'campaign', entityId: d.id, summary: raisedNote })
       refresh(prev?.slug)
       refresh(slug)
       revalidatePath(`/admin/campaigns/${d.id}`)
       return { success: 'Saved.' }
     }
     const [row] = await db.insert(goals).values(values).returning({ id: goals.id })
+    await logAdmin({ actorId: admin.id, action: 'campaign_create', entity: 'campaign', entityId: row.id, summary: d.title })
     refresh(slug)
     redirect(`/admin/campaigns/${row.id}?created=1`)
   })
 }
 
 export async function deleteCampaign(id: string): Promise<ActionState> {
-  return runAdmin(async () => {
+  return runAdmin(async (admin) => {
     const row = await db.query.goals.findFirst({ where: eq(goals.id, id) })
     await db.delete(goals).where(eq(goals.id, id))
+    await logAdmin({ actorId: admin.id, action: 'campaign_delete', entity: 'campaign', entityId: id, summary: row?.title })
     refresh(row?.slug)
     redirect('/admin/campaigns')
   })
@@ -112,7 +121,7 @@ export async function deleteCampaign(id: string): Promise<ActionState> {
 const milestoneStatus = z.enum(['upcoming', 'in_progress', 'completed'])
 
 export async function addMilestone(goalId: string, name: string): Promise<ActionState> {
-  return runAdmin(async () => {
+  return runAdmin(async (admin) => {
     const n = z.string().trim().min(2, 'Name the milestone.').max(200).safeParse(name)
     if (!n.success) return { error: n.error.issues[0].message }
     const existing = await db.query.goalMilestones.findMany({ where: eq(goalMilestones.goalId, goalId) })
@@ -121,6 +130,7 @@ export async function addMilestone(goalId: string, name: string): Promise<Action
       name: n.data,
       sortOrder: existing.reduce((m, x) => Math.max(m, x.sortOrder), 0) + 1,
     })
+    await logAdmin({ actorId: admin.id, action: 'milestone_add', entity: 'campaign', entityId: goalId, summary: n.data })
     await revalidateGoal(goalId)
     return { success: 'Milestone added.' }
   })
@@ -131,20 +141,22 @@ export async function setMilestoneStatus(
   goalId: string,
   status: z.infer<typeof milestoneStatus>,
 ): Promise<ActionState> {
-  return runAdmin(async () => {
+  return runAdmin(async (admin) => {
     const s = milestoneStatus.parse(status)
     await db
       .update(goalMilestones)
       .set({ status: s, completedAt: s === 'completed' ? new Date() : null })
       .where(eq(goalMilestones.id, id))
+    await logAdmin({ actorId: admin.id, action: 'milestone_status', entity: 'campaign', entityId: goalId, summary: `${id} -> ${s}` })
     await revalidateGoal(goalId)
     return { success: 'Updated.' }
   })
 }
 
 export async function deleteMilestone(id: string, goalId: string): Promise<ActionState> {
-  return runAdmin(async () => {
+  return runAdmin(async (admin) => {
     await db.delete(goalMilestones).where(eq(goalMilestones.id, id))
+    await logAdmin({ actorId: admin.id, action: 'milestone_delete', entity: 'campaign', entityId: goalId, summary: id })
     await revalidateGoal(goalId)
     return { success: 'Removed.' }
   })
@@ -159,14 +171,16 @@ export async function postGoalUpdate(goalId: string, title: string, body: string
       .safeParse({ title, body })
     if (!p.success) return { error: p.error.issues[0].message }
     await db.insert(goalUpdates).values({ goalId, authorId: user.id, title: p.data.title, body: p.data.body })
+    await logAdmin({ actorId: user.id, action: 'campaign_update_post', entity: 'campaign', entityId: goalId, summary: p.data.title })
     await revalidateGoal(goalId)
     return { success: 'Update posted.' }
   })
 }
 
 export async function deleteGoalUpdate(id: string, goalId: string): Promise<ActionState> {
-  return runAdmin(async () => {
+  return runAdmin(async (admin) => {
     await db.delete(goalUpdates).where(eq(goalUpdates.id, id))
+    await logAdmin({ actorId: admin.id, action: 'campaign_update_delete', entity: 'campaign', entityId: goalId, summary: id })
     await revalidateGoal(goalId)
     return { success: 'Removed.' }
   })

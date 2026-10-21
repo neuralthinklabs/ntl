@@ -6,7 +6,7 @@ import { PageHero } from '@/components/site/page-hero'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { problems } from '@/db/schema'
-import { StatusBadge } from '@/components/problems/status-badge'
+import { ProblemStatusBadge } from '@/components/problems/status-badge'
 import { Pager } from '@/components/site/pager'
 import { parsePage, totalPages } from '@/lib/pagination'
 
@@ -37,7 +37,7 @@ export default async function MyProblemsPage({ searchParams }: { searchParams: P
       <PageHero title="My Problems" description="Everything you've submitted, and its review status." />
       <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
         {mine.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+          <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-600">
             You haven&apos;t submitted a problem yet.
           </p>
         ) : (
@@ -47,20 +47,15 @@ export default async function MyProblemsPage({ searchParams }: { searchParams: P
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h3 className="text-sm font-semibold text-ink">{p.title}</h3>
-                    <p className="mt-1 text-xs text-slate-500">
-                      Submitted {new Date(p.createdAt).toLocaleDateString()}
+                    <p className="mt-1 text-xs text-slate-600">
+                      Submitted {new Date(p.createdAt).toLocaleDateString('en-US', { timeZone: 'UTC' })}
                     </p>
                   </div>
-                  <StatusBadge status={p.status} />
+                  <ProblemStatusBadge status={p.status} />
                 </div>
-                {p.attachmentsIncomplete && (
-                  <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
-                    One or more attachments failed to upload with this submission.
-                  </p>
-                )}
                 <p className="mt-3 line-clamp-2 text-sm text-slate-600">{p.description}</p>
                 {p.adminNotes && (
-                  <p className="mt-3 rounded-lg bg-slate-50 p-3 text-xs text-slate-500">
+                  <p className="mt-3 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
                     <span className="font-medium text-ink">Team note: </span>
                     {p.adminNotes}
                   </p>

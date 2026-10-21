@@ -1,11 +1,11 @@
 'use client'
 
+import { fieldClass } from '@/lib/ui'
+
 import { useActionState } from 'react'
 import Link from 'next/link'
 import { updateProfile } from '@/actions/profile'
 
-const fieldClass =
-  'w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-slate-400 focus:border-brand focus:ring-2 focus:ring-brand/20'
 
 export function ProfileForm({
   email,
@@ -29,7 +29,7 @@ export function ProfileForm({
     >
       <label className="block">
         <span className="mb-1.5 block text-sm font-medium text-ink">Email</span>
-        <input value={email} disabled className={`${fieldClass} bg-slate-50 text-slate-400`} />
+        <input value={email} disabled className={`${fieldClass} bg-slate-50 text-slate-600`} />
       </label>
       <label className="block">
         <span className="mb-1.5 block text-sm font-medium text-ink">Your NTL ID</span>

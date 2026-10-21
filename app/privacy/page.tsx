@@ -3,6 +3,13 @@ import { LegalPage } from '@/components/site/legal-page'
 
 export const metadata: Metadata = { title: 'Privacy policy' }
 
+// The static page is built on the host, so the platform's own build variables
+// tell us which provider is really in use.
+const onNetlify = !!process.env.NETLIFY
+const onVercel = !!process.env.VERCEL
+const hosting = onNetlify ? 'Netlify' : onVercel ? 'Vercel' : 'our hosting provider'
+const analytics = onVercel ? ' and Vercel Analytics' : ''
+
 export default function PrivacyPage() {
   return (
     <LegalPage title="Privacy policy" updated="[date]">
@@ -14,7 +21,7 @@ export default function PrivacyPage() {
       <ul>
         <li><strong>Account details:</strong> name, email address and password (stored hashed by our authentication provider).</li>
         <li><strong>What you submit:</strong> problem descriptions, attachments, event registrations, pledges, volunteer and contact messages.</li>
-        <li><strong>Technical data:</strong> IP address and basic usage analytics, used to keep the site secure and understand how it is used.</li>
+        <li><strong>Technical data:</strong> IP address and basic usage data, used to keep the site secure and understand how it is used.</li>
       </ul>
       <h2>How we use it</h2>
       <ul>
@@ -23,7 +30,7 @@ export default function PrivacyPage() {
         <li>To protect the site from abuse, spam and fraud.</li>
       </ul>
       <h2>Who processes it</h2>
-      <p>We use Supabase (database, authentication, file storage), Resend (email), Cloudflare Turnstile (spam protection), Vercel/Netlify (hosting) and Vercel Analytics. [Add any payment processor.] They process data on our behalf.</p>
+      <p>We use Supabase (database, authentication, file storage), Resend (email), Cloudflare Turnstile (spam protection) and {hosting} (hosting{analytics}). [Add any payment processor.] They process data on our behalf.</p>
       <h2>Your choices</h2>
       <p>You can view and edit your profile at any time. To access, correct, export or delete your data, email <a href="mailto:hello@neuralthinklabs.org">hello@neuralthinklabs.org</a>. We keep problem submissions and pledge records for as long as needed to run the programme and meet legal obligations.</p>
       <h2>Contact</h2>

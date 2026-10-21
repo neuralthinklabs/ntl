@@ -7,6 +7,7 @@ import { revalidatePath } from 'next/cache'
 import { db } from '@/db'
 import { portfolioItems } from '@/db/schema'
 import { runAdmin } from '@/lib/admin-action'
+import { logAdmin } from '@/lib/audit'
 import type { ActionState } from '../auth'
 
 const schema = z.object({
@@ -25,7 +26,7 @@ function refresh() {
 }
 
 export async function savePortfolioItem(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  return runAdmin(async () => {
+  return runAdmin(async (admin) => {
     const parsed = schema.safeParse({
       id: formData.get('id') || undefined,
       name: formData.get('name'),
@@ -40,18 +41,22 @@ export async function savePortfolioItem(_prev: ActionState, formData: FormData):
 
     if (id) {
       await db.update(portfolioItems).set(values).where(eq(portfolioItems.id, id))
+      await logAdmin({ actorId: admin.id, action: 'portfolio_update', entity: 'portfolio', entityId: id, summary: v.name })
       refresh()
       return { success: 'Saved.' }
     }
     const [row] = await db.insert(portfolioItems).values(values).returning({ id: portfolioItems.id })
+    await logAdmin({ actorId: admin.id, action: 'portfolio_create', entity: 'portfolio', entityId: row.id, summary: v.name })
     refresh()
     redirect(`/admin/portfolio/${row.id}?created=1`)
   })
 }
 
 export async function deletePortfolioItem(id: string): Promise<ActionState> {
-  return runAdmin(async () => {
+  return runAdmin(async (admin) => {
+    const row = await db.query.portfolioItems.findFirst({ where: eq(portfolioItems.id, id) })
     await db.delete(portfolioItems).where(eq(portfolioItems.id, id))
+    await logAdmin({ actorId: admin.id, action: 'portfolio_delete', entity: 'portfolio', entityId: id, summary: row?.name })
     refresh()
     redirect('/admin/portfolio')
   })

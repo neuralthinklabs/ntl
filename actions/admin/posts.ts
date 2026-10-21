@@ -7,6 +7,7 @@ import { revalidatePath } from 'next/cache'
 import { db } from '@/db'
 import { stories } from '@/db/schema'
 import { runAdmin } from '@/lib/admin-action'
+import { logAdmin } from '@/lib/audit'
 import { slugify } from '@/lib/slug'
 import { goalIndexBySlug } from '@/lib/ntldgs'
 import type { ActionState } from '../auth'
@@ -71,6 +72,13 @@ export async function savePost(_prev: ActionState, formData: FormData): Promise<
 
     if (existing) {
       await db.update(stories).set(values).where(eq(stories.id, existing.id))
+      await logAdmin({
+        actorId: user.id,
+        action: d.intent === 'publish' ? 'post_publish' : 'post_save_draft',
+        entity: 'post',
+        entityId: existing.id,
+        summary: d.title,
+      })
       refresh(existing.slug)
       refresh(slug)
       return { success: d.intent === 'publish' ? 'Published.' : 'Saved as draft.' }
@@ -80,15 +88,23 @@ export async function savePost(_prev: ActionState, formData: FormData): Promise<
       .insert(stories)
       .values({ ...values, authorId: user.id })
       .returning({ id: stories.id })
+    await logAdmin({
+      actorId: user.id,
+      action: d.intent === 'publish' ? 'post_publish' : 'post_create',
+      entity: 'post',
+      entityId: row.id,
+      summary: d.title,
+    })
     refresh(slug)
     redirect(`/admin/posts/${row.id}?created=1`)
   })
 }
 
 export async function deletePost(id: string): Promise<ActionState> {
-  return runAdmin(async () => {
+  return runAdmin(async (user) => {
     const row = await db.query.stories.findFirst({ where: eq(stories.id, id) })
     await db.delete(stories).where(eq(stories.id, id))
+    await logAdmin({ actorId: user.id, action: 'post_delete', entity: 'post', entityId: id, summary: row?.title })
     refresh(row?.slug)
     redirect('/admin/posts')
   })

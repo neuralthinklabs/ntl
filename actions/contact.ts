@@ -6,7 +6,7 @@ import { contactEnquiries } from '@/db/schema'
 import { verifyTurnstile } from '@/lib/turnstile'
 import { sendEmail, contactAckEmail, contactNotifyEmail } from '@/lib/email'
 import { checkRateLimit, recordAttempt, ipIdentifier } from '@/lib/rate-limit'
-import { clientIp } from '@/lib/request'
+import { getClientIp as clientIp } from '@/lib/ip'
 import type { ActionState } from './auth'
 
 const contactSchema = z.object({

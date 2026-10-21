@@ -13,6 +13,7 @@ import {
   Mail,
   Megaphone,
   Boxes,
+  ScrollText,
   Users,
   MapPinned,
 } from 'lucide-react'
@@ -30,6 +31,7 @@ const items = [
   { href: '/admin/atlas', label: 'Atlas', icon: MapPinned },
   { href: '/admin/contact', label: 'Contact messages', icon: Mail },
   { href: '/admin/users', label: 'Users', icon: Users },
+  { href: '/admin/audit', label: 'Audit log', icon: ScrollText },
 ]
 
 export function AdminNav() {
