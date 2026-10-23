@@ -20,6 +20,8 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_PROBLEM_FORM_URL: z.string().url().optional(),
   PAYMENT_INSTRUCTIONS: z.string().optional(),
   CRON_SECRET: z.string().min(8).optional(),
+  // Server-only. Needed for the admin "Sign-in apps" page.
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(20).optional(),
 })
 
 export type Env = z.infer<typeof serverEnvSchema>

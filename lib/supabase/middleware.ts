@@ -4,7 +4,7 @@ import { fetchIsAdminRole } from '@/lib/auth/role-check'
 
 // /team is login-only here; the page itself checks the volunteer / core team /
 // admin role and redirects everyone else.
-const PROTECTED_PREFIXES = ['/dashboard', '/profile', '/problems/mine', '/contributions', '/team']
+const PROTECTED_PREFIXES = ['/dashboard', '/profile', '/problems/mine', '/contributions', '/team', '/oauth', '/account']
 const ADMIN_PREFIXES = ['/admin']
 
 // Match whole path segments: "/team" and "/team/x" match, "/teams" does not.

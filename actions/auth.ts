@@ -41,7 +41,7 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
     password,
     options: {
       data: { full_name: fullName },
-      emailRedirectTo: `${await siteUrl()}/auth/callback?next=/dashboard`,
+      emailRedirectTo: `${await siteUrl()}/auth/callback?next=${encodeURIComponent(safeNext(formData.get('next')))}`,
     },
   })
   if (error) return { error: error.message }

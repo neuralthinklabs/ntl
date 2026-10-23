@@ -27,6 +27,7 @@ const columns = [
     title: 'Help and legal',
     links: [
       { href: '/faq', label: 'FAQ' },
+      { href: '/developers', label: 'Developers' },
       { href: '/privacy', label: 'Privacy' },
       { href: '/terms', label: 'Terms' },
     ],

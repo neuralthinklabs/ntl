@@ -41,7 +41,7 @@ export default async function LoginPage({
             <div className="flex flex-col gap-2 text-sm text-slate-600">
               <div className="flex items-center justify-between">
                 <span>
-                  New here? <AuthLink href="/auth/signup">Sign up</AuthLink>
+                  New here? <AuthLink href={safe ? `/auth/signup?next=${encodeURIComponent(safe)}` : '/auth/signup'}>Sign up</AuthLink>
                 </span>
                 <AuthLink href="/auth/reset-password">Forgot password?</AuthLink>
               </div>

@@ -15,6 +15,7 @@ const baseNav = [
   { label: 'Events', icon: CalendarDays, href: '/events' },
   { label: 'The 12 goals', icon: Compass, href: '/ntldgs' },
   { label: 'Achievements', icon: Award, href: '/dashboard#achievements' },
+  { label: 'Connected apps', icon: ShieldCheck, href: '/account/connected-apps' },
 ]
 
 export type ActivityItem = { id: string; title: string; meta: string; date: string; type: string }

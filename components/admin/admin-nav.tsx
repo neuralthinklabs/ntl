@@ -16,6 +16,7 @@ import {
   ScrollText,
   Users,
   MapPinned,
+  KeyRound,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -29,6 +30,7 @@ const items = [
   { href: '/admin/campaigns', label: 'Campaigns', icon: Megaphone },
   { href: '/admin/portfolio', label: 'Portfolio', icon: Boxes },
   { href: '/admin/atlas', label: 'Atlas', icon: MapPinned },
+  { href: '/admin/oauth-clients', label: 'Sign-in apps', icon: KeyRound },
   { href: '/admin/contact', label: 'Contact messages', icon: Mail },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/audit', label: 'Audit log', icon: ScrollText },
