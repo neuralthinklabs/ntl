@@ -81,6 +81,11 @@ export default async function AtlasUnitPage({ params }: Props) {
             </Block>
           )}
           {unit.initiatives && <Block title="NTL activity"><p className="whitespace-pre-wrap">{unit.initiatives}</p></Block>}
+           {!unit.initiatives && unit.level !== 'zone' && (
+             <Block title="NTL activity">
+               <p>No NTL team here yet. Live here and want to lead? <Link href="/volunteer" className="font-medium text-brand-muted underline">Volunteer as a local lead</Link>.</p>
+             </Block>
+           )}
           {empty && <p className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-600">This profile is still being compiled.</p>}
         </div>
 
