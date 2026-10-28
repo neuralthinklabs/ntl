@@ -1,10 +1,13 @@
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-// Small uppercase eyebrow. brand-muted (#1f4fd8) passes contrast on white.
+// Eyebrow label with the brand's small blue square (echoes the notch in the logo).
 export function SectionLabel({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <p className={cn('text-xs font-semibold uppercase tracking-[0.16em] text-brand-muted', className)}>{children}</p>
+    <p className={cn('inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-brand-muted', className)}>
+      <span aria-hidden className="size-1.5 shrink-0 bg-brand" />
+      {children}
+    </p>
   )
 }
 
@@ -23,6 +26,7 @@ export function SectionHeading({
     <div className={cn('max-w-2xl', className)}>
       {label && <SectionLabel>{label}</SectionLabel>}
       <h2 className={cn('text-3xl font-semibold tracking-tight text-ink sm:text-4xl', label && 'mt-3')}>{title}</h2>
+      <span aria-hidden className="mt-3 block h-0.5 w-10 bg-brand" />
       {description && <p className="mt-4 text-base leading-relaxed text-slate-600">{description}</p>}
     </div>
   )
@@ -34,14 +38,14 @@ const statusStyles: Record<StatusTone, string> = {
   active: 'bg-brand-soft text-brand-muted ring-brand/30',
   progress: 'bg-brand-soft text-brand-muted ring-brand/30',
   planned: 'bg-slate-100 text-slate-700 ring-slate-200',
-  completed: 'bg-emerald-50 text-emerald-800 ring-emerald-200',
+  completed: 'bg-ink text-white ring-ink',
   neutral: 'bg-slate-100 text-slate-700 ring-slate-200',
 }
 
 export function StatusBadge({ tone = 'neutral', children, className }: { tone?: StatusTone; children: React.ReactNode; className?: string }) {
   return (
-    <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset', statusStyles[tone], className)}>
-      {tone === 'active' && <span className="size-1.5 rounded-full bg-brand" aria-hidden />}
+    <span className={cn('inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset', statusStyles[tone], className)}>
+      {tone === 'active' && <span className="size-1.5 bg-brand" aria-hidden />}
       {children}
     </span>
   )
@@ -58,14 +62,15 @@ export function ProgressBar({ value, className, tone = 'brand', label = 'Funding
       aria-valuemin={0}
       aria-valuemax={100}
     >
-      <div className="h-full rounded-full bg-gradient-to-r from-brand to-brand-2 transition-all" style={{ width: `${v}%` }} />
+      <div className="h-full rounded-full bg-gradient-to-r from-ink-2 to-brand transition-all" style={{ width: `${v}%`, backgroundImage: tone === 'dark' ? 'linear-gradient(90deg,#38b6ff,#0a6fd8)' : undefined }} />
     </div>
   )
 }
 
+// Geometric tile (rounded square) instead of a circle, per the brand's modular shapes.
 export function IconTile({ icon: Icon, className }: { icon: LucideIcon; className?: string }) {
   return (
-    <span className={cn('inline-flex size-11 items-center justify-center rounded-full bg-brand-soft text-brand-muted ring-1 ring-inset ring-brand/20', className)}>
+    <span className={cn('inline-flex size-11 items-center justify-center rounded-xl bg-brand-soft text-brand-muted ring-1 ring-inset ring-brand/25', className)}>
       <Icon className="size-5" />
     </span>
   )

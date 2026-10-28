@@ -6,6 +6,7 @@ import { Award, CalendarDays, ClipboardList, Compass, HandHeart, LayoutDashboard
 import { cn } from '@/lib/utils'
 import { logout } from '@/actions/auth'
 import { ROLE_LABELS } from '@/lib/roles'
+import { DotGrid } from '@/components/brand/graphics'
 
 const baseNav = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
@@ -112,7 +113,9 @@ export function Dashboard({
         </aside>
 
         <div>
-          <div className="rounded-2xl bg-ink p-6 text-white sm:p-8">
+          <div className="relative overflow-hidden rounded-2xl bg-ink p-6 text-white sm:p-8 [&>:not([aria-hidden])]:relative">
+            <div aria-hidden className="bg-hero-glow absolute inset-0" />
+            <DotGrid className="absolute inset-0 text-white/10 [mask-image:linear-gradient(to_right,black,transparent_70%)]" />
             <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Welcome back, {name}</h1>
             <p className="mt-1 text-sm text-white/70">
               {isTeam && openAssignments > 0

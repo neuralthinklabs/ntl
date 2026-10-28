@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { BookOpen, GitBranch, GraduationCap, Lightbulb, Microscope, Package, ShieldCheck, Users, Wrench } from 'lucide-react'
 import { IconTile, SectionHeading, SectionLabel } from '@/components/site/ui'
+import { Overlays } from '@/components/brand/graphics'
 
 // Moved here from the old /about page (now merged into the homepage, id="about").
 const founder = {
@@ -29,7 +30,8 @@ const approach = [
 
 export function AboutSection() {
   return (
-    <section id="about" aria-labelledby="about-heading" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
+    <section id="about" aria-labelledby="about-heading" className="relative mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
+      <Overlays className="absolute right-6 top-16 hidden w-44 opacity-80 lg:block" />
       <SectionHeading label="About NTL" title="What we do" description="A global ecosystem for learning, innovation and real-world impact." />
       <h2 id="about-heading" className="sr-only">About Neural Think Labs</h2>
 

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Logo } from './logo'
 import { brandSocials } from './brand-icons'
+import { DotGrid, FlowLines } from '@/components/brand/graphics'
 
 const columns = [
   {
@@ -36,8 +37,10 @@ const columns = [
 
 export function Footer() {
   return (
-    <footer className="bg-ink text-white">
-      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+    <footer className="relative overflow-hidden bg-ink text-white">
+      <DotGrid className="absolute inset-0 text-white/5" />
+      <FlowLines className="absolute inset-x-0 top-0 h-14 w-full opacity-60" />
+      <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="grid gap-12 md:grid-cols-[1.2fr_2fr]">
           <div className="max-w-xs">
             <Logo />
@@ -82,7 +85,7 @@ export function Footer() {
 
         <div className="mt-12 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Neural Think Labs. All rights reserved.</p>
-          <p>Real people. Real problems. Better futures.</p>
+          <p>Think Beyond. Build What Matters.</p>
         </div>
       </div>
     </footer>

@@ -64,9 +64,9 @@ export function PortfolioList({ items }: { items: PortfolioListItem[] }) {
         {filtered.map((item) => {
           const Icon = TYPE_ICONS[item.type] ?? Boxes
           return (
-            <article key={item.name} className="flex flex-col rounded-2xl border border-line bg-white p-6">
+            <article key={item.name} className="flex flex-col rounded-2xl border border-line bg-white p-6 shadow-sm transition-shadow hover:shadow-md hover:shadow-brand/10">
               <div className="flex items-start justify-between gap-4">
-                <span className="inline-flex size-11 items-center justify-center rounded-xl bg-brand-soft text-brand-muted">
+                <span className="inline-flex size-11 items-center justify-center rounded-xl bg-brand-soft text-brand-muted ring-1 ring-inset ring-brand/25">
                   <Icon className="size-5" />
                 </span>
                 <StatusBadge tone={statusTone(item.status)}>{item.status}</StatusBadge>

@@ -5,6 +5,7 @@ import { SiteShell } from '@/components/site/site-shell'
 import { PageHero } from '@/components/site/page-hero'
 import { IconTile, SectionLabel } from '@/components/site/ui'
 import { btnPrimary } from '@/lib/ui'
+import { DotGrid, GeoShapes } from '@/components/brand/graphics'
 
 export const metadata: Metadata = {
   title: 'Get involved',
@@ -41,6 +42,8 @@ export default function GetInvolvedPage() {
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <section className="relative overflow-hidden rounded-3xl bg-ink p-8 text-white sm:p-12">
           <div aria-hidden="true" className="bg-hero-glow absolute inset-0" />
+          <DotGrid className="absolute inset-0 text-white/10" />
+          <GeoShapes className="absolute -right-6 -top-6 hidden w-40 stroke-white opacity-25 md:block" />
           <div className="relative grid gap-6 md:grid-cols-[auto_1fr_auto] md:items-center">
             <IconTile icon={main.icon} className="size-14" />
             <div>

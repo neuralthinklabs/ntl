@@ -46,7 +46,7 @@ export default async function GoalPage({ params }: Props) {
     <SiteShell>
       <section className="relative overflow-hidden bg-ink text-white">
         <div className="absolute inset-0">
-          <Image src={goal.heroImage || '/images/water-community.png'} alt="" fill sizes="100vw" className="object-cover opacity-25" />
+          <Image src={goal.heroImage || '/images/water-community.png'} alt="" fill sizes="100vw" className="object-cover opacity-25 grayscale" />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/90 to-ink/60" />
         </div>
         <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">

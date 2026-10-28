@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react'
 import { SectionHeading } from '@/components/site/ui'
 import { ATLAS_LEVELS, LEVEL_PLURAL, type AtlasLevel } from '@/lib/atlas-constants'
 import { btnPrimary } from '@/lib/ui'
+import { NetworkNodes } from '@/components/brand/graphics'
 
 const blurb: Record<AtlasLevel, string> = {
   zone: 'The major geographic divisions.',
@@ -23,6 +24,7 @@ export function AtlasTeaser({ counts }: { counts: Record<AtlasLevel, number> }) 
           <Link href="/atlas" className={`${btnPrimary} mt-8`}>
             Open the Atlas <ArrowRight className="size-4" />
           </Link>
+          <NetworkNodes className="mt-10 hidden w-48 opacity-70 lg:block" />
         </div>
         <ul className="grid gap-4 sm:grid-cols-3">
           {ATLAS_LEVELS.map((l) => (

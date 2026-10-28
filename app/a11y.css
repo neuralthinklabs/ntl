@@ -1,6 +1,6 @@
 /* Visible keyboard focus everywhere. */
 :focus-visible {
-  outline: 2px solid #1f4fd8;
+  outline: 2px solid #0b5fb8;
   outline-offset: 2px;
 }
 .bg-ink :focus-visible,

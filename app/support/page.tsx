@@ -25,7 +25,7 @@ export default async function SupportPage() {
     <SiteShell>
       <section className="relative overflow-hidden bg-ink text-white">
         <div className="absolute inset-0">
-          <Image src="/images/support-plant.png" alt="" fill sizes="100vw" className="object-cover opacity-30" />
+          <Image src="/images/support-plant.png" alt="" fill sizes="100vw" className="object-cover opacity-30 grayscale" />
           <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/50" />
         </div>
         <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">

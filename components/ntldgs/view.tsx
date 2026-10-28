@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react'
 import { SiteShell } from '@/components/site/site-shell'
 import { GoalSprite } from './goal-icon'
 import { Orbit } from './orbit'
+import { DotGrid } from '@/components/brand/graphics'
 import { NtldgsExplorer } from './explorer'
 import { SystemSection } from './system-section'
 import { SectionLabel } from '@/components/site/ui'
@@ -57,7 +58,9 @@ export function NtldgsView({ slug }: { slug: string }) {
     <SiteShell>
       <GoalSprite />
       <section className="relative overflow-hidden bg-ink text-white">
-        <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-16 sm:px-6 sm:py-20 md:grid-cols-2">
+        <div aria-hidden className="bg-hero-glow absolute inset-0" />
+        <DotGrid className="absolute inset-0 text-white/10 [mask-image:linear-gradient(to_right,black,transparent_70%)]" />
+        <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-16 sm:px-6 sm:py-20 md:grid-cols-2">
           <div>
             <h1 className="text-balance text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl">Human Flourishing</h1>
             <p className="mt-5 max-w-md text-base leading-relaxed text-white/75">A better life, a stronger society, and a future worth inheriting.</p>

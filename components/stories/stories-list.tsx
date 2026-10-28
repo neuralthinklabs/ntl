@@ -35,7 +35,7 @@ export function StoriesList({ items, categories, active }: { items: StoryCardDat
             <article key={s.slug} className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
               <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
                 {s.image && (
-                  <Image src={s.image} alt="" fill sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover transition-transform duration-300 group-hover:scale-105" />
+                  <Image src={s.image} alt="" fill sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover grayscale transition duration-300 hover:grayscale-0 group-hover:grayscale-0 transition-transform duration-300 group-hover:scale-105" />
                 )}
               </div>
               <div className="flex flex-1 flex-col p-5">

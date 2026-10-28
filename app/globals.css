@@ -50,12 +50,12 @@
   /* NTL palette: deep navy surfaces, sky -> indigo -> violet accents */
   --color-canvas: #f6f8fc;
   --color-line: #e4e9f2;
-  --color-brand-soft: #eaf2ff;
+  --color-brand-soft: #eaf6ff;
   --color-brand: #38b6ff;
-  --color-brand-2: #5b7cff;
-  --color-violet: #8b5cf6;
+  --color-brand-2: #0a6fd8;
+  --color-slate-brand: #64748b; /* Slate */
   --color-brand-foreground: #031325;
-  --color-brand-muted: #1f4fd8; /* passes contrast on white */
+  --color-brand-muted: #0b5fb8; /* text blue, passes contrast on white */
   --color-ink: #050b1a;
   --color-ink-2: #0a1428;
   --color-ink-3: #101c36;
@@ -75,24 +75,24 @@
   --secondary-foreground: #0a1428;
   --muted: #f1f5fb;
   --muted-foreground: #5b6578;
-  --accent: #eaf2ff;
-  --accent-foreground: #1f4fd8;
+  --accent: #eaf6ff;
+  --accent-foreground: #0b5fb8;
   --destructive: oklch(0.577 0.245 27.325);
   --border: #e4e9f2;
   --input: #e4e9f2;
   --ring: #38b6ff;
   --chart-1: #38b6ff;
-  --chart-2: #5b7cff;
-  --chart-3: #8b5cf6;
-  --chart-4: #1f4fd8;
+  --chart-2: #0a6fd8;
+  --chart-3: #64748b;
+  --chart-4: #0b5fb8;
   --chart-5: #0a1428;
   --radius: 0.75rem;
   --sidebar: #f6f8fc;
   --sidebar-foreground: #050b1a;
   --sidebar-primary: #38b6ff;
   --sidebar-primary-foreground: #031325;
-  --sidebar-accent: #eaf2ff;
-  --sidebar-accent-foreground: #1f4fd8;
+  --sidebar-accent: #eaf6ff;
+  --sidebar-accent-foreground: #0b5fb8;
   --sidebar-border: #e4e9f2;
   --sidebar-ring: #38b6ff;
 }
@@ -131,7 +131,7 @@
 
 /* Reusable gradient text + soft glows for dark sections */
 @utility text-gradient {
-  background-image: linear-gradient(90deg, #38b6ff 0%, #5b7cff 55%, #8b5cf6 100%);
+  background-image: linear-gradient(90deg, #38b6ff 0%, #0a6fd8 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -139,6 +139,6 @@
 
 @utility bg-hero-glow {
   background-image:
-    radial-gradient(60% 80% at 80% 20%, rgb(91 124 255 / 0.28), transparent 60%),
-    radial-gradient(40% 60% at 10% 100%, rgb(56 182 255 / 0.16), transparent 60%);
+    radial-gradient(60% 80% at 85% 10%, rgb(56 182 255 / 0.22), transparent 60%),
+    radial-gradient(40% 60% at 5% 100%, rgb(56 182 255 / 0.10), transparent 60%);
 }

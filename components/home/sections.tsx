@@ -7,6 +7,7 @@ import { goals as ntldgs } from '@/lib/ntldgs'
 import { money } from '@/lib/format'
 import { percentFunded } from '@/lib/goals'
 import { btnPrimary } from '@/lib/ui'
+import { DotGrid, NetworkNodes } from '@/components/brand/graphics'
 import type { StoryCardData } from '@/lib/stories'
 
 export function HomeStats({ stats }: { stats: { value: string; label: string }[] }) {
@@ -142,6 +143,7 @@ export function NtldgTeaser() {
   return (
     <section className="relative overflow-hidden bg-ink text-white">
       <div aria-hidden="true" className="bg-hero-glow absolute inset-0" />
+      <DotGrid className="absolute inset-0 text-white/10 [mask-image:linear-gradient(to_right,black,transparent_70%)]" />
       <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-20 sm:px-6 md:grid-cols-[1.1fr_1fr]">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand">Our north star</p>
@@ -182,7 +184,7 @@ export function FeaturedStory({ story }: { story: StoryCardData | null }) {
       >
         <div className="relative min-h-56 bg-slate-100">
           {story.image && (
-            <Image src={story.image} alt="" fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
+            <Image src={story.image} alt="" fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover grayscale" />
           )}
         </div>
         <div className="flex flex-col justify-center p-8 sm:p-12">
@@ -203,6 +205,8 @@ export function HomeCta() {
     <section className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
       <div className="relative overflow-hidden rounded-[2rem] bg-ink px-6 py-16 text-center sm:px-12">
         <div aria-hidden="true" className="bg-hero-glow absolute inset-0" />
+        <DotGrid className="absolute inset-0 text-white/10" />
+        <NetworkNodes className="absolute -right-4 bottom-2 hidden w-48 opacity-60 md:block" />
         <div className="relative">
           <h2 className="mx-auto max-w-xl text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl">
             Let’s build what’s next

@@ -19,7 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <div className="grid gap-8 lg:grid-cols-[220px_1fr]">
           <aside className="sticky top-16 z-30 -mx-4 border-b border-slate-200 bg-canvas/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
-                <p className="mb-3 hidden px-3 text-xs font-medium text-slate-600 lg:block">Admin portal</p>
+                <p className="mb-3 hidden items-center gap-2 px-3 text-xs font-semibold uppercase tracking-[0.16em] text-brand-muted lg:flex"><span aria-hidden className="size-1.5 bg-brand" />Admin portal</p>
                 <AdminNav />
            </aside>
           <div className="min-w-0">{children}</div>
