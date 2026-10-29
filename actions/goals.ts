@@ -8,6 +8,7 @@ import { db } from '@/db'
 import { goals, contributions } from '@/db/schema'
 import { sendEmail, pledgeReceivedEmail, pledgeAdminNotifyEmail } from '@/lib/email'
 import { money } from '@/lib/format'
+import { checkRateLimit, recordAttempt } from '@/lib/rate-limit'
 import type { ActionState } from './auth'
 
 // A pledge is only a promise. The public progress bar changes ONLY when an
@@ -31,6 +32,12 @@ export async function recordContribution(_prev: ActionState, formData: FormData)
   } = await supabase.auth.getUser()
   if (!user) return { error: 'Please log in to pledge your support.' }
 
+  // At most 10 pledges per 15 minutes per person.
+  const pledgeKey = `pledge:user:${user.id}`
+  if (!(await checkRateLimit(pledgeKey, 10)).allowed) {
+    return { error: 'Too many pledges in a short time. Please try again in a few minutes.' }
+  }
+
   const parsed = pledgeSchema.safeParse({
     goalId: formData.get('goalId'),
     amount: formData.get('amount'),
@@ -39,6 +46,7 @@ export async function recordContribution(_prev: ActionState, formData: FormData)
   })
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Invalid input.' }
 
+  await recordAttempt(pledgeKey)
   const { goalId, amount, note, clientRequestId } = parsed.data
   const goal = await db.query.goals.findFirst({ where: eq(goals.id, goalId) })
   if (!goal) return { error: 'This campaign no longer exists. Please refresh the page.' }

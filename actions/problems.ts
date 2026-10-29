@@ -20,6 +20,7 @@ import { hasValidSignatureBytes } from '@/lib/file-signature'
 import { awardPoints } from '@/lib/points'
 import { checkAchievements } from '@/lib/achievements'
 import { goalIndexBySlug } from '@/lib/ntldgs'
+import { checkRateLimit, recordAttempt } from '@/lib/rate-limit'
 import type { ActionState } from './auth'
 
 const BUCKET = 'problem-attachments'
@@ -70,6 +71,12 @@ export async function submitProblem(_prev: ActionState, formData: FormData): Pro
   } = await supabase.auth.getUser()
   if (!user) return { error: 'Please log in to submit a problem.' }
 
+  // At most 8 submissions per 15 minutes per person.
+  const submitKey = `problem:user:${user.id}`
+  if (!(await checkRateLimit(submitKey, 8)).allowed) {
+    return { error: 'Too many submissions in a short time. Please try again in a few minutes.' }
+  }
+
   const parsed = problemSchema.safeParse({
     title: formData.get('title'),
     description: formData.get('description'),
@@ -81,6 +88,7 @@ export async function submitProblem(_prev: ActionState, formData: FormData): Pro
     clientRequestId: formData.get('clientRequestId'),
   })
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Invalid input.' }
+  await recordAttempt(submitKey)
   const data = parsed.data
   const ntldgSlug = data.ntldgSlug && goalIndexBySlug(data.ntldgSlug) >= 0 ? data.ntldgSlug : null
 
