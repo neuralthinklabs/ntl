@@ -1,18 +1,19 @@
 import Link from 'next/link'
 import { count, desc, eq, gte, isNull } from 'drizzle-orm'
 import { db } from '@/db'
-import { problems, contactEnquiries, contributions, events, stories } from '@/db/schema'
+import { problems, contactEnquiries, contributions, events, stories, volunteerApplications } from '@/db/schema'
 import { AdminHeader } from '@/components/admin/admin-header'
 
 export const metadata = { title: 'Overview' }
 
 export default async function AdminOverview() {
-  const [[newProblems], [openContact], [pledges], [upcoming], [drafts]] = await Promise.all([
+  const [[newProblems], [openContact], [pledges], [upcoming], [drafts], [newVolunteers]] = await Promise.all([
     db.select({ n: count() }).from(problems).where(eq(problems.status, 'submitted')),
     db.select({ n: count() }).from(contactEnquiries).where(eq(contactEnquiries.handled, false)),
     db.select({ n: count() }).from(contributions).where(eq(contributions.status, 'pledged')),
     db.select({ n: count() }).from(events).where(gte(events.startsAt, new Date())),
     db.select({ n: count() }).from(stories).where(isNull(stories.publishedAt)),
+    db.select({ n: count() }).from(volunteerApplications).where(eq(volunteerApplications.status, 'new')),
   ])
   const recent = await db.query.problems.findMany({ orderBy: [desc(problems.createdAt)], limit: 5 })
 
@@ -22,6 +23,7 @@ export default async function AdminOverview() {
     { label: 'Unhandled messages', value: openContact.n, href: '/admin/contact' },
     { label: 'Upcoming events', value: upcoming.n, href: '/admin/events' },
     { label: 'Draft posts', value: drafts.n, href: '/admin/posts' },
+    { label: 'New volunteer applications', value: newVolunteers.n, href: '/admin/volunteers?status=new' },
   ]
 
   return (

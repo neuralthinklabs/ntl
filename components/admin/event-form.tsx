@@ -15,6 +15,7 @@ export type EventFormValues = {
   startsAt: string
   endsAt: string
   capacity: string
+  meetingUrl: string
 }
 
 const ZONES = ['UTC', 'Asia/Kolkata', 'Asia/Dubai', 'Asia/Singapore', 'Europe/London', 'Europe/Berlin', 'America/New_York', 'America/Chicago', 'America/Los_Angeles', 'Africa/Lagos', 'Australia/Sydney']
@@ -67,6 +68,9 @@ export function EventForm({ initial }: { initial?: EventFormValues }) {
           <input name="capacity" type="number" min="1" defaultValue={v?.capacity} className={fieldClass} />
         </Field>
       </div>
+      <Field label="Meeting link (optional)" hint="https link to Zoom, Meet, etc. Shown only to registered people.">
+        <input name="meetingUrl" type="url" defaultValue={v?.meetingUrl} className={fieldClass} placeholder="https://" />
+      </Field>
       <Field label="Web address (optional)" hint="Leave blank to build it from the title.">
         <input name="slug" defaultValue={v?.slug} className={fieldClass} />
       </Field>

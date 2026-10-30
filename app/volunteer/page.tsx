@@ -1,11 +1,17 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { eq } from 'drizzle-orm'
 import { ArrowRight, Globe, HeartHandshake, Sparkles } from 'lucide-react'
 import { SiteShell } from '@/components/site/site-shell'
 import { PageHero } from '@/components/site/page-hero'
 import { IconTile, SectionLabel } from '@/components/site/ui'
+import { VolunteerForm } from '@/components/volunteer/volunteer-form'
+import { createClient } from '@/lib/supabase/server'
+import { db } from '@/db'
+import { profiles } from '@/db/schema'
 
 export const metadata: Metadata = { title: 'Volunteer', description: 'Your skills can help solve real problems.' }
+export const dynamic = 'force-dynamic'
 
 const why = [
   { icon: HeartHandshake, title: 'Make a real impact', text: 'Work on meaningful projects that matter to real communities.' },
@@ -14,13 +20,17 @@ const why = [
 ]
 
 const steps = [
-  { title: 'Fill out the application form', text: 'Takes about 5–10 minutes.' },
+  { title: 'Fill out the application below', text: 'Takes about 5–10 minutes.' },
   { title: 'Our team reviews your application', text: 'We will be in touch within 1–2 weeks.' },
   { title: 'Get started', text: 'Join the team and make an impact.' },
 ]
 
-export default function VolunteerPage() {
-  const formUrl = process.env.NEXT_PUBLIC_VOLUNTEER_FORM_URL
+export default async function VolunteerPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const profile = user ? await db.query.profiles.findFirst({ where: eq(profiles.id, user.id) }) : null
 
   return (
     <SiteShell>
@@ -57,15 +67,9 @@ export default function VolunteerPage() {
           <div className="rounded-2xl bg-ink p-8 text-white">
             <h3 className="text-xl font-semibold tracking-tight">Ready to get involved?</h3>
             <p className="mt-2 text-sm leading-relaxed text-white/75">Apply now and our team will match you with a project that fits your skills and interests.</p>
-            {formUrl ? (
-              <a href={formUrl} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand/90">
-                Apply now <ArrowRight className="size-4" />
-              </a>
-            ) : (
-              <Link href="/contact" className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand/90">
-                Tell us you&apos;re interested <ArrowRight className="size-4" />
-              </Link>
-            )}
+            <a href="#apply" className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand/90">
+              Go to the application <ArrowRight className="size-4" />
+            </a>
             <p className="mt-6 text-sm text-white/75">
               Have questions? Read the{' '}
               <Link href="/faq" className="font-medium text-brand underline">FAQ</Link> or{' '}
@@ -73,6 +77,26 @@ export default function VolunteerPage() {
             </p>
           </div>
         </div>
+
+        <section id="apply" aria-labelledby="apply-heading" className="mx-auto mt-20 max-w-3xl scroll-mt-24">
+          <SectionLabel>Application</SectionLabel>
+          <h2 id="apply-heading" className="mt-2 text-2xl font-semibold tracking-tight text-ink">Apply to volunteer</h2>
+          <div className="mt-6">
+            {user ? (
+              <VolunteerForm defaultName={profile?.fullName ?? ''} />
+            ) : (
+              <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+                <p className="text-sm leading-relaxed text-slate-600">
+                  Create a free account or log in first, so we can email you about your application and you can track it.
+                </p>
+                <div className="mt-5 flex flex-wrap justify-center gap-3">
+                  <Link href={`/auth/login?next=${encodeURIComponent('/volunteer')}`} className="rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-brand-foreground hover:bg-brand/90">Log in</Link>
+                  <Link href={`/auth/signup?next=${encodeURIComponent('/volunteer')}`} className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-medium text-ink hover:bg-slate-50">Create an account</Link>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     </SiteShell>
   )

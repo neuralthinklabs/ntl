@@ -15,18 +15,8 @@ export const metadata: Metadata = {
 const enquiries = [
   {
     icon: Mail,
-    label: 'General Enquiries',
-    value: 'hello@neuralthinklabs.org',
-  },
-  {
-    icon: MessageSquare,
-    label: 'Partnerships',
-    value: 'partners@neuralthinklabs.org',
-  },
-  {
-    icon: Mail,
-    label: 'Support',
-    value: 'support@neuralthinklabs.org',
+    label: 'Mail',
+    value: 'neuralthinklabs.admin@gmail.com',
   },
 ]
 

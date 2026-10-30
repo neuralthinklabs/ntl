@@ -16,8 +16,6 @@ const serverEnvSchema = z.object({
   CONTACT_INBOX_EMAIL: z.string().email().optional(),
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1).optional(),
   TURNSTILE_SECRET_KEY: z.string().min(1).optional(),
-  NEXT_PUBLIC_VOLUNTEER_FORM_URL: z.string().url().optional(),
-  NEXT_PUBLIC_PROBLEM_FORM_URL: z.string().url().optional(),
   PAYMENT_INSTRUCTIONS: z.string().optional(),
   CRON_SECRET: z.string().min(16).optional(),
   // Server-only. Needed for the admin "Sign-in apps" page.

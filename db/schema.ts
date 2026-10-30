@@ -249,6 +249,8 @@ export const events = pgTable('events', {
   startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
   endsAt: timestamp('ends_at', { withTimezone: true }),
   capacity: integer('capacity'),
+  /** Private link, shown only to registered people. */
+  meetingUrl: text('meeting_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
@@ -263,6 +265,7 @@ export const eventRegistrations = pgTable(
       .references(() => profiles.id, { onDelete: 'cascade' }),
     status: registrationStatusEnum('status').notNull().default('registered'),
     registeredAt: timestamp('registered_at', { withTimezone: true }).notNull().defaultNow(),
+    reminderSentAt: timestamp('reminder_sent_at', { withTimezone: true }),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.eventId, t.userId] }),
@@ -546,3 +549,40 @@ export const assignmentsRelations = relations(assignments, ({ one }) => ({
   problem: one(problems, { fields: [assignments.problemId], references: [problems.id] }),
   story: one(stories, { fields: [assignments.storyId], references: [stories.id] }),
 }))
+
+
+// ---------------------------------------------------------------------------
+// Volunteer applications (migration 0015). Replaces the old Google Form.
+// ---------------------------------------------------------------------------
+
+export const volunteerStatusEnum = pgEnum('volunteer_status', ['new', 'reviewing', 'accepted', 'declined'])
+
+export const volunteerApplications = pgTable(
+  'volunteer_applications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    clientRequestId: uuid('client_request_id').unique(),
+    fullName: text('full_name').notNull(),
+    phone: text('phone'),
+    location: text('location').notNull(),
+    skills: text('skills').notNull(),
+    ntldgSlugs: text('ntldg_slugs').array().notNull().default(sql`'{}'::text[]`),
+    hoursPerWeek: integer('hours_per_week'),
+    availability: text('availability'),
+    experience: text('experience'),
+    motivation: text('motivation').notNull(),
+    links: text('links'),
+    status: volunteerStatusEnum('status').notNull().default('new'),
+    adminNotes: text('admin_notes'),
+    reviewedBy: uuid('reviewed_by').references(() => profiles.id, { onDelete: 'set null' }),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    statusIdx: index('volunteer_applications_status_idx').on(t.status, t.createdAt),
+  }),
+)

@@ -26,6 +26,7 @@ const eventSchema = z.object({
   startsAt: z.string().min(1, 'Choose a start date and time.'),
   endsAt: z.string().optional(),
   capacity: z.coerce.number().int().positive().max(100000).optional(),
+  meetingUrl: z.string().trim().url('Enter a valid meeting link.').refine((u) => u.startsWith('https://'), 'The meeting link must start with https://').optional(),
 })
 
 function refresh() {
@@ -47,6 +48,7 @@ export async function saveEvent(_prev: ActionState, formData: FormData): Promise
       startsAt: formData.get('startsAt'),
       endsAt: formData.get('endsAt') || undefined,
       capacity: formData.get('capacity') || undefined,
+      meetingUrl: formData.get('meetingUrl') || undefined,
     })
     if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Invalid input.' }
     const d = parsed.data
@@ -71,6 +73,7 @@ export async function saveEvent(_prev: ActionState, formData: FormData): Promise
       startsAt,
       endsAt,
       capacity: d.capacity ?? null,
+      meetingUrl: d.meetingUrl ?? null,
     }
 
     if (d.id) {

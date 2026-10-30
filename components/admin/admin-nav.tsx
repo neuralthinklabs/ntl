@@ -17,6 +17,7 @@ import {
   Users,
   MapPinned,
   KeyRound,
+  HeartHandshake,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -24,6 +25,7 @@ const items = [
   { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
   { href: '/admin/problems', label: 'Problems', icon: ListChecks },
   { href: '/admin/assignments', label: 'Assignments', icon: ClipboardList },
+  { href: '/admin/volunteers', label: 'Volunteer applications', icon: HeartHandshake },
   { href: '/admin/contributions', label: 'Pledges & payments', icon: HandCoins },
   { href: '/admin/posts', label: 'Posts & stories', icon: FileText },
   { href: '/admin/events', label: 'Events', icon: CalendarDays },

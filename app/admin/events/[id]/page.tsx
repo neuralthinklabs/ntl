@@ -39,12 +39,14 @@ export default async function EditEventPage({ params, searchParams }: { params: 
           startsAt: dateToZonedLocal(ev.startsAt, ev.timezone),
           endsAt: ev.endsAt ? dateToZonedLocal(ev.endsAt, ev.timezone) : '',
           capacity: ev.capacity ? String(ev.capacity) : '',
+          meetingUrl: ev.meetingUrl ?? '',
         }}
       />
 
       <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-base font-semibold text-ink">Registrations ({regs.length})</h2>
         <p className="mt-1 text-xs text-slate-600">Marking someone “attended” awards them points once.</p>
+        <a href={`/admin/events/${ev.id}/export`} className="mt-2 inline-block text-xs font-medium text-brand-muted underline">Download list (CSV)</a>
         {regs.length === 0 ? (
           <p className="mt-4 text-sm text-slate-600">No one has registered yet.</p>
         ) : (
