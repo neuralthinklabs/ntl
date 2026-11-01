@@ -20,6 +20,8 @@ import { relations, sql } from 'drizzle-orm'
 // Enums
 // ---------------------------------------------------------------------------
 
+export const eventKindEnum = pgEnum('event_kind', ['event', 'workshop', 'talk', 'meetup', 'hackathon'])
+
 export const userRoleEnum = pgEnum('user_role', ['member', 'volunteer', 'core_team', 'admin'])
 
 export const problemStatusEnum = pgEnum('problem_status', [
@@ -249,6 +251,13 @@ export const events = pgTable('events', {
   startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
   endsAt: timestamp('ends_at', { withTimezone: true }),
   capacity: integer('capacity'),
+  submissionDeadline: timestamp('submission_deadline', { withTimezone: true }),
+  teamMax: integer('team_max'),
+  teamMin: integer('team_min'),
+  registrationClosesAt: timestamp('registration_closes_at', { withTimezone: true }),
+  venueMapUrl: text('venue_map_url'),
+  venueAddress: text('venue_address'),
+  kind: eventKindEnum('kind').notNull().default('event'),
   /** Private link, shown only to registered people. */
   meetingUrl: text('meeting_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -265,6 +274,8 @@ export const eventRegistrations = pgTable(
       .references(() => profiles.id, { onDelete: 'cascade' }),
     status: registrationStatusEnum('status').notNull().default('registered'),
     registeredAt: timestamp('registered_at', { withTimezone: true }).notNull().defaultNow(),
+    ticketCode: text('ticket_code').notNull().unique().default(sql`public.generate_ticket_code()`),
+    ticketTypeId: uuid('ticket_type_id').references((): AnyPgColumn => ticketTypes.id, { onDelete: 'set null' }),
     reminderSentAt: timestamp('reminder_sent_at', { withTimezone: true }),
   },
   (t) => ({
@@ -586,3 +597,54 @@ export const volunteerApplications = pgTable(
     statusIdx: index('volunteer_applications_status_idx').on(t.status, t.createdAt),
   }),
 )
+
+
+// ---------------------------------------------------------------------------
+// Event tickets and hackathons (migration 0016)
+// ---------------------------------------------------------------------------
+
+export const ticketTypes = pgTable('ticket_types', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  description: text('description'),
+  /** Always 0 for now: paid tickets need a payment setup first. */
+  priceCents: integer('price_cents').notNull().default(0),
+  quantity: integer('quantity'),
+  salesStart: timestamp('sales_start', { withTimezone: true }),
+  salesEnd: timestamp('sales_end', { withTimezone: true }),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+export const eventTeams = pgTable('event_teams', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  inviteCode: text('invite_code').notNull().unique(),
+  createdBy: uuid('created_by').references(() => profiles.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+export const eventTeamMembers = pgTable(
+  'event_team_members',
+  {
+    teamId: uuid('team_id').notNull().references(() => eventTeams.id, { onDelete: 'cascade' }),
+    eventId: uuid('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
+    joinedAt: timestamp('joined_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.teamId, t.userId] }) }),
+)
+
+export const eventSubmissions = pgTable('event_submissions', {
+  teamId: uuid('team_id').primaryKey().references(() => eventTeams.id, { onDelete: 'cascade' }),
+  eventId: uuid('event_id').notNull().references(() => events.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  repoUrl: text('repo_url'),
+  demoUrl: text('demo_url'),
+  videoUrl: text('video_url'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})

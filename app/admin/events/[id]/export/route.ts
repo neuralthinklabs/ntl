@@ -1,6 +1,6 @@
 import { asc, eq } from 'drizzle-orm'
 import { db } from '@/db'
-import { events, eventRegistrations, profiles } from '@/db/schema'
+import { events, eventRegistrations, profiles, ticketTypes } from '@/db/schema'
 import { requireAdminAction } from '@/lib/auth/admin'
 import { logAdmin } from '@/lib/audit'
 
@@ -26,16 +26,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (!ev) return new Response('Not found', { status: 404 })
 
   const rows = await db
-    .select({ name: profiles.fullName, email: profiles.email, ntlId: profiles.ntlId, status: eventRegistrations.status, at: eventRegistrations.registeredAt })
+    .select({ name: profiles.fullName, email: profiles.email, ntlId: profiles.ntlId, status: eventRegistrations.status, at: eventRegistrations.registeredAt, ticket: ticketTypes.name, code: eventRegistrations.ticketCode })
     .from(eventRegistrations)
     .innerJoin(profiles, eq(eventRegistrations.userId, profiles.id))
+    .leftJoin(ticketTypes, eq(eventRegistrations.ticketTypeId, ticketTypes.id))
     .where(eq(eventRegistrations.eventId, id))
     .orderBy(asc(eventRegistrations.registeredAt))
 
   const csv =
-    ['Name', 'Email', 'NTL ID', 'Status', 'Registered at (UTC)'].map(cell).join(',') +
+    ['Name', 'Email', 'NTL ID', 'Status', 'Ticket', 'Ticket code', 'Registered at (UTC)'].map(cell).join(',') +
     '\r\n' +
-    rows.map((r) => [r.name ?? '', r.email, r.ntlId, r.status, r.at.toISOString()].map(cell).join(',')).join('\r\n') +
+    rows.map((r) => [r.name ?? '', r.email, r.ntlId, r.status, r.ticket ?? '', r.code, r.at.toISOString()].map(cell).join(',')).join('\r\n') +
     '\r\n'
 
   await logAdmin({ actorId: admin.id, action: 'event_export', entity: 'event', entityId: id, summary: `${rows.length} rows` })

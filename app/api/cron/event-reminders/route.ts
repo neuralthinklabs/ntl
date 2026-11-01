@@ -4,7 +4,7 @@ import { and, eq, gt, isNull, lt } from 'drizzle-orm'
 import { db } from '@/db'
 import { events, eventRegistrations, profiles } from '@/db/schema'
 import { sendEmail, escapeHtml } from '@/lib/email'
-import { formatEventWhen } from '@/lib/events'
+import { eventWhere, formatEventWhen } from '@/lib/events'
 
 // Sends ONE reminder to each registered person whose event starts within the
 // next 30 hours. Run once a day (vercel.json / netlify function). Requires
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
   let sent = 0
   for (const { ev, userId, email } of rows) {
     if (!email) continue
-    const where = ev.isOnline ? 'Online' : (ev.location ?? 'Location to be announced')
+    const where = eventWhere(ev)
     const link = ev.isOnline && ev.meetingUrl?.startsWith('https://') ? `<p><a href="${escapeHtml(ev.meetingUrl)}">Join the meeting</a></p>` : ''
     const page = base ? `<p><a href="${escapeHtml(`${base}/events/${ev.slug}`)}">Event details</a></p>` : ''
     await sendEmail({

@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, gte, lt } from 'drizzle-orm'
 import { db } from '@/db'
 import { events, eventRegistrations } from '@/db/schema'
+import { KIND_LABEL } from '@/lib/event-constants'
 
 export type EventCardData = {
   id: string
@@ -11,6 +12,8 @@ export type EventCardData = {
   meta: string
   description: string
   full: boolean
+  kind: string
+  kindLabel: string
 }
 
 type EventRow = typeof events.$inferSelect
@@ -30,18 +33,26 @@ export function formatEventWhen(e: Pick<EventRow, 'startsAt' | 'endsAt' | 'timez
   return `${date}, ${range} ${zone}`
 }
 
+/** "Online", "Online + Venue name", or the venue. */
+export function eventWhere(e: Pick<EventRow, 'isOnline' | 'location'>) {
+  if (e.isOnline && e.location) return `Online + ${e.location}`
+  if (e.isOnline) return 'Online'
+  return e.location || 'Location to be announced'
+}
+
 function toCard(e: EventRow, taken: number): EventCardData {
   const start = new Date(e.startsAt)
-  const where = e.isOnline ? 'Online' : e.location || 'Location to be announced'
   return {
     id: e.id,
     slug: e.slug,
     month: fmt(start, e.timezone, { month: 'short' }).toUpperCase(),
     day: fmt(start, e.timezone, { day: 'numeric' }),
     title: e.title,
-    meta: `${where} — ${formatEventWhen(e)}`,
+    meta: `${eventWhere(e)} — ${formatEventWhen(e)}`,
     description: e.description ?? '',
     full: !!e.capacity && taken >= e.capacity,
+    kind: e.kind,
+    kindLabel: KIND_LABEL[e.kind] ?? 'Event',
   }
 }
 

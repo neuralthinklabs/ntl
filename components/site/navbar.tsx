@@ -27,6 +27,7 @@ const accountLinks = [
   { href: '/profile', label: 'Profile' },
   { href: '/problems/mine', label: 'My problems' },
   { href: '/contributions/mine', label: 'My pledges' },
+  { href: '/tickets', label: 'My tickets' },
 ]
 
 type NavbarUser = { email: string; fullName?: string } | null
