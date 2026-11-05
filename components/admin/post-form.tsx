@@ -3,8 +3,8 @@
 import { useActionState } from 'react'
 import { savePost } from '@/actions/admin/posts'
 import { goals } from '@/lib/ntldgs'
-import { Field, FormMessage, SubmitButton, fieldClass } from './fields'
-import { ImageUpload } from './image-upload'
+import { Field, FormMessage, SubmitButton, fieldClass } from '@/components/admin/fields'
+import { ImageUpload } from '@/components/admin/image-upload'
 import { STORY_CATEGORIES } from '@/lib/story-categories'
 
 export type PostFormValues = {
@@ -13,13 +13,21 @@ export type PostFormValues = {
   slug: string
   category: string
   excerpt: string
+  collectionId?: string; 
+  position?: string;     
+  issue?: string;
   body: string
   coverImage: string
   ntldgSlug: string
   published: boolean
 }
 
-export function PostForm({ initial }: { initial?: PostFormValues }) {
+interface PostFormProps {
+  initial?: PostFormValues
+  collections?: { id: string; title: string; kind: string }[]
+}
+
+export function PostForm({ initial, collections = [] }: PostFormProps) {
   const [state, action] = useActionState(savePost, null)
   const v = initial
 
@@ -48,6 +56,20 @@ export function PostForm({ initial }: { initial?: PostFormValues }) {
           </select>
         </Field>
       </div>
+      <div className="grid gap-5 sm:grid-cols-3">
+          <Field label="Series or magazine (optional)">
+            <select name="collectionId" defaultValue={v?.collectionId ?? ''} className={fieldClass}>
+              <option value="">None</option>
+              {collections.map((c) => <option key={c.id} value={c.id}>{c.title} ({c.kind})</option>)}
+            </select>
+          </Field>
+          <Field label="Part / order" hint="Part 1, 2, 3…">
+            <input name="position" type="number" min="0" defaultValue={v?.position ?? '0'} className={fieldClass} />
+          </Field>
+          <Field label="Issue (magazines)" hint="Issue number, if a magazine.">
+            <input name="issue" type="number" min="1" defaultValue={v?.issue} className={fieldClass} />
+          </Field>
+        </div>
       <Field label="Short summary" hint="Shown on cards and in link previews. Up to 400 characters.">
         <textarea name="excerpt" rows={2} maxLength={400} defaultValue={v?.excerpt} className={`${fieldClass} resize-none`} />
       </Field>
@@ -74,3 +96,4 @@ export function PostForm({ initial }: { initial?: PostFormValues }) {
     </form>
   )
 }
+

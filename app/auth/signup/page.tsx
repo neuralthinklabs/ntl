@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { SiteShell } from '@/components/site/site-shell'
 import { AuthForm, AuthShell, AuthLink } from '@/components/auth/auth-form'
+import { GoogleButton, OrDivider } from '@/components/auth/google-button'
 import { signUp } from '@/actions/auth'
 import { safeNext } from '@/lib/safe-redirect'
 
@@ -18,6 +19,8 @@ export default async function SignUpPage({ searchParams }: { searchParams: Promi
         title="Create your account"
         description="Join Neural Think Labs to submit problems, join events, and track your impact."
       >
+        <GoogleButton next={safe} label="Sign up with Google" />
+        <OrDivider />
         <AuthForm
           action={signUp}
           submitLabel="Create account"

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { SiteShell } from '@/components/site/site-shell'
 import { PageHero } from '@/components/site/page-hero'
 import { Pager } from '@/components/site/pager'
@@ -28,6 +29,11 @@ export default async function StoriesPage({
     <SiteShell>
       <PageHero title="Stories & Updates" description="Real people. Real progress. Insights, research and stories from our community." />
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+        <p className="mb-6 flex flex-wrap gap-x-5 gap-y-1 text-sm font-medium">
+          <span className="text-slate-600">Browse by format:</span>
+          <Link href="/series" className="text-brand-muted underline">Series</Link>
+          <Link href="/magazines" className="text-brand-muted underline">Magazines</Link>
+        </p>
         <StoriesList items={items} categories={categories} active={category} />
         <Pager page={page} totalPages={totalPages(total, STORIES_PAGE_SIZE)} basePath={basePath} />
       </div>

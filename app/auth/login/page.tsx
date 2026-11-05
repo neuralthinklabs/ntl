@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { SiteShell } from '@/components/site/site-shell'
 import { AuthForm, AuthShell, AuthLink } from '@/components/auth/auth-form'
+import { GoogleButton, OrDivider } from '@/components/auth/google-button'
 import { login } from '@/actions/auth'
 import { safeNext } from '@/lib/safe-redirect'
 
@@ -29,6 +30,8 @@ export default async function LoginPage({
         {message && (
           <p className="mb-4 rounded-lg bg-red-50 px-3.5 py-2.5 text-sm text-red-700">{message}</p>
         )}
+        <GoogleButton next={safe} />
+        <OrDivider />
         <AuthForm
           action={login}
           submitLabel="Log in"

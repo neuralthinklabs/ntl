@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
+  BookOpen,
   CalendarDays,
   ClipboardList,
   FileText,
@@ -28,6 +29,7 @@ const items = [
   { href: '/admin/volunteers', label: 'Volunteer applications', icon: HeartHandshake },
   { href: '/admin/contributions', label: 'Pledges & payments', icon: HandCoins },
   { href: '/admin/posts', label: 'Posts & stories', icon: FileText },
+  { href: '/admin/collections', label: 'Series & magazines', icon: BookOpen },
   { href: '/admin/events', label: 'Events', icon: CalendarDays },
   { href: '/admin/campaigns', label: 'Campaigns', icon: Megaphone },
   { href: '/admin/portfolio', label: 'Portfolio', icon: Boxes },

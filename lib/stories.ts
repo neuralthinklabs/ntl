@@ -92,6 +92,8 @@ export async function getStoryBySlug(slug: string) {
   const credited = row.author?.showCredit ? row.author : null
   return {
     ...toCard(row),
+    id: row.id,
+    collectionId: row.collectionId,
     body: row.body ?? '',
     ntldgSlug: row.ntldgSlug,
     updatedAt: row.updatedAt,

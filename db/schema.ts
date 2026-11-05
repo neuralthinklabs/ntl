@@ -286,6 +286,20 @@ export const eventRegistrations = pgTable(
 // ---------------------------------------------------------------------------
 // Stories / blog posts (published_at in the past = live, null = draft)
 // ---------------------------------------------------------------------------
+export const collectionKindEnum = pgEnum('collection_kind', ['series', 'magazine'])
+
+export const collections = pgTable('collections', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  slug: text('slug').notNull().unique(),
+  kind: collectionKindEnum('kind').notNull(),
+  title: text('title').notNull(),
+  description: text('description'),
+  coverImage: text('cover_image'),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 
 export const stories = pgTable('stories', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -300,6 +314,9 @@ export const stories = pgTable('stories', {
   publishedAt: timestamp('published_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  collectionId: uuid('collection_id').references((): AnyPgColumn => collections.id, { onDelete: 'set null' }),
+  position: integer('position').notNull().default(0),
+  issue: integer('issue'),
 })
 
 // ---------------------------------------------------------------------------
@@ -546,7 +563,9 @@ export const eventRegistrationsRelations = relations(eventRegistrations, ({ one 
 
 export const storiesRelations = relations(stories, ({ one }) => ({
   author: one(profiles, { fields: [stories.authorId], references: [profiles.id] }),
+  collection: one(collections, { fields: [stories.collectionId], references: [collections.id] }),
 }))
+export const collectionsRelations = relations(collections, ({ many }) => ({ stories: many(stories) }))
 
 export const userAchievementsRelations = relations(userAchievements, ({ one }) => ({
   user: one(profiles, { fields: [userAchievements.userId], references: [profiles.id] }),

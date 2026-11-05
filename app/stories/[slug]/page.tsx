@@ -8,6 +8,7 @@ import { Prose } from '@/components/site/prose'
 import { getStoryBySlug } from '@/lib/stories'
 import { goalIndexBySlug, goals } from '@/lib/ntldgs'
 import { AuthorBio } from '@/components/stories/author-bio'
+import { COLLECTION_LABEL, COLLECTION_PATH, getCollectionContextBySlug } from '@/lib/collections'
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -28,6 +29,7 @@ export default async function StoryPage({ params }: Props) {
   const s = await getStoryBySlug(slug)
   if (!s) notFound()
   const gi = goalIndexBySlug(s.ntldgSlug)
+  const ctx = await getCollectionContextBySlug(s.slug)
 
   return (
     <SiteShell>
@@ -52,6 +54,14 @@ export default async function StoryPage({ params }: Props) {
             </span>
           )}
         </p>
+        {ctx && (
+          <p className="mt-4 text-sm font-medium text-slate-700">
+            <Link href={`${COLLECTION_PATH[ctx.collection.kind]}/${ctx.collection.slug}`} className="text-brand-muted underline">
+              {COLLECTION_LABEL[ctx.collection.kind]}: {ctx.collection.title}
+            </Link>
+            {ctx.collection.kind === 'series' ? ` · Part ${ctx.index + 1} of ${ctx.total}` : ctx.issue ? ` · Issue ${ctx.issue}` : ''}
+          </p>
+        )}
         <h1 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-ink sm:text-4xl">{s.title}</h1>
         {s.excerpt && <p className="mt-4 text-lg leading-relaxed text-slate-600">{s.excerpt}</p>}
         {s.image && (
@@ -62,6 +72,24 @@ export default async function StoryPage({ params }: Props) {
         <div className="mt-10">
           <Prose text={s.body} />
         </div>
+        {ctx && (ctx.prev || ctx.next) && (
+          <nav aria-label="In this collection" className="mt-12 grid gap-3 sm:grid-cols-2">
+            {ctx.prev ? (
+              <Link href={`/stories/${ctx.prev.slug}`} className="rounded-2xl border border-slate-200 bg-white p-4 text-sm hover:bg-slate-50">
+                <span className="block text-xs text-slate-600">← Previous</span>
+                <span className="font-semibold text-ink">{ctx.prev.title}</span>
+              </Link>
+            ) : (
+              <span />
+            )}
+            {ctx.next && (
+              <Link href={`/stories/${ctx.next.slug}`} className="rounded-2xl border border-slate-200 bg-white p-4 text-right text-sm hover:bg-slate-50">
+                <span className="block text-xs text-slate-600">Next →</span>
+                <span className="font-semibold text-ink">{ctx.next.title}</span>
+              </Link>
+            )}
+          </nav>
+        )}
         {s.authorName && s.authorNtlId && (
           <AuthorBio name={s.authorName} ntlId={s.authorNtlId} bio={s.authorBio} />
         )}
