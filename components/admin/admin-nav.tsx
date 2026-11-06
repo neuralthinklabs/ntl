@@ -19,6 +19,7 @@ import {
   MapPinned,
   KeyRound,
   HeartHandshake,
+  MessagesSquare,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -30,6 +31,7 @@ const items = [
   { href: '/admin/contributions', label: 'Pledges & payments', icon: HandCoins },
   { href: '/admin/posts', label: 'Posts & stories', icon: FileText },
   { href: '/admin/collections', label: 'Series & magazines', icon: BookOpen },
+  { href: '/admin/community', label: 'Community', icon: MessagesSquare },
   { href: '/admin/events', label: 'Events', icon: CalendarDays },
   { href: '/admin/campaigns', label: 'Campaigns', icon: Megaphone },
   { href: '/admin/portfolio', label: 'Portfolio', icon: Boxes },

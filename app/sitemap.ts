@@ -9,7 +9,7 @@ import { COLLECTION_PATH } from '@/lib/collection-constants'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-  const staticPaths = ['', '/get-involved', '/atlas', '/ntldgs', '/portfolio', '/events', '/stories', '/series', '/magazines', '/support', '/volunteer', '/problems', '/contact', '/faq', '/developers', '/privacy', '/terms']
+  const staticPaths = ['', '/get-involved', '/atlas', '/ntldgs', '/portfolio', '/events', '/community', '/community/discover', '/stories', '/series', '/magazines', '/support', '/volunteer', '/problems', '/contact', '/faq', '/developers', '/privacy', '/terms']
 
   let storyRows: { slug: string; updatedAt: Date }[] = []
   let campaignRows: { slug: string; updatedAt: Date }[] = []

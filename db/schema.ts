@@ -111,6 +111,10 @@ export const profiles = pgTable('profiles', {
   bio: text('bio'),
   role: userRoleEnum('role').notNull().default('member'),
   points: integer('points').notNull().default(0),
+  /** Community: skips post approval, can post events (migration 0019). */
+  verifiedContributor: boolean('verified_contributor').notNull().default(false),
+  communitySuspendedUntil: timestamp('community_suspended_until', { withTimezone: true }),
+  communityBanned: boolean('community_banned').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })

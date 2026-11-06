@@ -16,6 +16,7 @@ const primaryLinks = [
   { href: '/portfolio', label: 'Portfolio' },
   { href: '/stories', label: 'Stories' },
   { href: '/events', label: 'Events' },
+  { href: '/community', label: 'Community' },
 ]
 
 const CTA = { href: '/get-involved', label: 'Get involved' }
@@ -28,6 +29,8 @@ const accountLinks = [
   { href: '/problems/mine', label: 'My problems' },
   { href: '/contributions/mine', label: 'My pledges' },
   { href: '/tickets', label: 'My tickets' },
+  { href: '/community/groups', label: 'My groups' },
+  { href: '/community/notifications', label: 'Notifications' },
 ]
 
 type NavbarUser = { email: string; fullName?: string } | null
