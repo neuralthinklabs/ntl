@@ -58,7 +58,7 @@ export default async function MemberPage({ params }: Props) {
               {p.showCredit && <Link href={`/u/${p.ntlId}`} className="text-xs font-medium text-brand-muted underline">NTL credits</Link>}
             </p>
           </div>
-          {viewer && viewer.id !== p.id && <div className="ml-auto"><ActionButton action={blockUser.bind(null, p.id)} label="Block" confirm="Block this person? You will stop seeing their posts and comments." variant="danger" /></div>}
+          {viewer && viewer.id !== p.id && <div className="ml-auto flex items-center gap-2"><Link href={`/community/messages/${p.ntlId}`} className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-brand-foreground hover:bg-brand/90">Message</Link><ActionButton action={blockUser.bind(null, p.id)} label="Block" confirm="Block this person? You will stop seeing their posts and comments." variant="danger" /></div>}
         </div>
         {p.bio && <p className="mt-6 whitespace-pre-line text-sm leading-relaxed text-slate-700">{p.bio}</p>}
 

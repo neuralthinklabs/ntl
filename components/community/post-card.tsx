@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { BadgeCheck, CalendarDays, ExternalLink, MapPin, Pin } from 'lucide-react'
 import { ReactionBar, Poll } from './post-actions'
 import { ActionButton } from './action-button'
+import { PostAttachments } from './post-attachments'
+import { PostAuthorTools } from './post-author-tools'
 import { removePost, restorePost, setPinned, approvePost } from '@/actions/community-manage'
 import { POST_TYPE_LABEL, groupHref } from '@/lib/community/constants'
 import { formatDate } from '@/lib/datetime'
@@ -49,7 +51,7 @@ export function PostCard({
         {showGroup && (
           <Link href={groupHref({ slug: post.communitySlug, visibility: post.communityVisibility })} className="font-medium text-brand-muted hover:underline">{post.communityName}</Link>
         )}
-        <span className="ml-auto text-slate-600">{formatDate(post.createdAt)}</span>
+        <span className="ml-auto text-slate-600">{formatDate(post.createdAt)}{post.editedAt ? ' · edited' : ''}</span>
       </div>
 
       {post.title && (
@@ -69,6 +71,8 @@ export function PostCard({
       </p>
 
       <p className={cn('mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-700', !detail && 'line-clamp-6')}>{post.body}</p>
+
+      {post.attachments > 0 && post.status !== 'removed' && <PostAttachments postId={post.id} />}
 
       {post.type === 'event' && post.eventStartsAt && (
         <ul className="mt-3 flex flex-col gap-1 text-sm text-slate-700">
@@ -97,6 +101,10 @@ export function PostCard({
           authorId={post.authorId}
           viewerId={viewerId}
         />
+      )}
+
+      {viewerId && post.authorId === viewerId && post.status !== 'removed' && (
+        <PostAuthorTools postId={post.id} type={post.type} title={post.title} body={post.body} linkUrl={post.linkUrl} />
       )}
 
       {canModerate && (

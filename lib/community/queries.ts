@@ -33,6 +33,8 @@ export type FeedPost = {
   comments: number
   reactions: number
   myReaction: string | null
+  editedAt: Date | null
+  attachments: number
 }
 
 function postFields(viewerId: string | null) {
@@ -58,6 +60,8 @@ function postFields(viewerId: string | null) {
     authorVerified: sql<boolean>`coalesce(${profiles.verifiedContributor}, false)`,
     comments: sql<number>`(select count(*)::int from community_comments c where c.post_id = ${communityPosts.id} and c.status = 'published')`,
     reactions: sql<number>`(select count(*)::int from post_reactions r where r.post_id = ${communityPosts.id})`,
+    editedAt: communityPosts.editedAt,
+    attachments: sql<number>`(select count(*)::int from post_attachments a where a.post_id = ${communityPosts.id})`,
     myReaction: viewerId
       ? sql<string | null>`(select r.kind from post_reactions r where r.post_id = ${communityPosts.id} and r.user_id = ${viewerId})`
       : sql<string | null>`null`,
@@ -94,6 +98,7 @@ export async function getFeed(o: {
   if (o.communityId) conds.push(eq(communityPosts.communityId, o.communityId))
   else {
     conds.push(ne(communities.visibility, 'internal'))
+    conds.push(sql`${communities.archivedAt} is null`)
     const member = o.viewerId
       ? sql`${communityPosts.communityId} in (select community_id from community_members where user_id = ${o.viewerId} and status in ('active','suspended'))`
       : sql`false`

@@ -16,8 +16,11 @@ import { approveMember, banMember, closeReport, liftRestriction, rejectMember, r
 import { parsePage, totalPages, DEFAULT_PAGE_SIZE } from '@/lib/pagination'
 import { formatDate } from '@/lib/datetime'
 import { cn } from '@/lib/utils'
+import { MeetingsTab } from './meetings-tab'
+import { TasksTab } from './tasks-tab'
+import { hasTasks } from '@/lib/collab/constants'
 
-type SP = { tab?: string; type?: string; page?: string }
+type SP = { tab?: string; type?: string; page?: string; mine?: string }
 const pill = (on: boolean) => cn('rounded-full px-4 py-1.5 text-sm font-medium', on ? 'bg-ink text-white' : 'bg-white text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50')
 
 /** Shared by /community/g/[slug] and /workspace/[slug]. Authorization lives in loadGroup / resolveAccess. */
@@ -28,7 +31,13 @@ export async function GroupView({ slug, internal, sp }: { slug: string; internal
   const base = groupHref(c)
   const loggedIn = !!viewer
   const memberCount = await getMemberCount(c.id)
-  const tab = sp.tab === 'members' && (access.isMember || viewer?.isAdmin) ? 'members' : sp.tab === 'moderation' && access.canModerate ? 'moderation' : 'discussion'
+  const member = access.isMember || !!viewer?.isAdmin
+  const tab =
+    sp.tab === 'members' && member ? 'members'
+    : sp.tab === 'moderation' && access.canModerate ? 'moderation'
+    : sp.tab === 'meetings' && member ? 'meetings'
+    : sp.tab === 'tasks' && member && hasTasks(c.kind) ? 'tasks'
+    : 'discussion'
   const { page } = parsePage(sp)
   const type = POST_TYPES.find((t) => t === sp.type)
 
@@ -87,6 +96,8 @@ export async function GroupView({ slug, internal, sp }: { slug: string; internal
             <Link key={t} href={qs({ type: t })} className={pill(tab === 'discussion' && type === t)}>{POST_TYPE_LABEL[t]}s</Link>
           ))}
           {(access.isMember || viewer?.isAdmin) && <Link href={qs({ tab: 'members' })} className={pill(tab === 'members')}>Members</Link>}
+          {member && <Link href={qs({ tab: 'meetings' })} className={pill(tab === 'meetings')}>Meetings</Link>}
+          {member && hasTasks(c.kind) && <Link href={qs({ tab: 'tasks' })} className={pill(tab === 'tasks')}>Tasks</Link>}
           {access.canModerate && <Link href={qs({ tab: 'moderation' })} className={pill(tab === 'moderation')}>Moderation</Link>}
         </nav>
 
@@ -175,6 +186,9 @@ export async function GroupView({ slug, internal, sp }: { slug: string; internal
             </div>
           </section>
         )}
+
+        {tab === 'meetings' && <MeetingsTab community={c} viewer={viewer} access={access} />}
+        {tab === 'tasks' && <TasksTab community={c} viewer={viewer} access={access} mine={sp.mine === '1'} />}
 
         {tab === 'moderation' && (
           <section className="mt-8 flex flex-col gap-8">

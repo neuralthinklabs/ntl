@@ -28,11 +28,30 @@ create table if not exists collection_stories (
 create index if not exists collection_stories_collection_idx on collection_stories (collection_id, issue, position);
 
 alter table collections enable row level security;
-create policy "Published collections are publicly readable" on collections
-  for select using (published_at is not null and published_at <= now());
-create policy "Admins can read all collections" on collections
-  for select using (public.is_admin());
 
--- Server-only table: no policies, no access through the public API keys.
+drop policy if exists
+  "Published collections are publicly readable"
+  on collections;
+
+create policy "Published collections are publicly readable"
+on collections
+for select
+using (
+  published_at is not null
+  and published_at <= now()
+);
+
+drop policy if exists
+  "Admins can read all collections"
+  on collections;
+
+create policy "Admins can read all collections"
+on collections
+for select
+using (public.is_admin());
+
+-- Server-only table
 alter table collection_stories enable row level security;
-revoke all on table collection_stories from anon, authenticated;
+
+revoke all on table collection_stories
+from anon, authenticated;

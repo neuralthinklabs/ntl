@@ -93,7 +93,6 @@ export async function getStoryBySlug(slug: string) {
   return {
     ...toCard(row),
     id: row.id,
-    collectionId: row.collectionId,
     body: row.body ?? '',
     ntldgSlug: row.ntldgSlug,
     updatedAt: row.updatedAt,

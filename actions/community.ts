@@ -12,6 +12,9 @@ import { checkRateLimit, recordAttempt } from '@/lib/rate-limit'
 import { getMembership, getViewer, guard } from '@/lib/community/authz'
 import { notify, notifyStaff } from '@/lib/community/notify'
 import { APPEALABLE, POST_TYPES, REACTION_KINDS, REPORT_REASONS, groupHref } from '@/lib/community/constants'
+import { postAttachments } from '@/db/collab-schema'
+import { COMMUNITY_MAX_FILES } from '@/lib/collab/constants'
+import { readUploads, removeUploads, verifyUploads } from '@/lib/collab/uploads'
 import type { ActionState } from './auth'
 
 const uuid = z.string().uuid()
@@ -69,7 +72,7 @@ export async function leaveCommunity(communityId: string): Promise<ActionState> 
   const m = c ? await getMembership(c.id, viewer.id) : null
   if (!c || !m) return { error: 'You are not in this group.' }
   // Leaving must not be a way out of a suspension or ban.
-  if (m.status === 'suspended' || m.status === 'banned') return { error: 'You cannot leave while a restriction is active.' }
+  if (m.status === 'banned' || (m.status === 'suspended' && (!m.suspendedUntil || m.suspendedUntil > new Date()))) return { error: 'You cannot leave while a restriction is active.' }
   if (m.role === 'leader') {
     const leaders = await db.select({ n: sql<number>`count(*)::int` }).from(communityMembers).where(and(eq(communityMembers.communityId, c.id), eq(communityMembers.role, 'leader'), eq(communityMembers.status, 'active')))
     if ((leaders[0]?.n ?? 0) <= 1) return { error: 'You are the only leader. Make someone else a leader first.' }
@@ -143,6 +146,15 @@ export async function createPost(_prev: ActionState, formData: FormData): Promis
   if (closes === undefined || starts === undefined) return { error: 'That date is not valid.' }
   if (d.type === 'event' && !starts) return { error: 'Choose when the event starts.' }
 
+  const uploads = readUploads(formData)
+  if (!uploads) return { error: `Attachments could not be read. Attach at most ${COMMUNITY_MAX_FILES} files and try again.` }
+  if (uploads.length) {
+    const bad = await verifyUploads(uploads, `${community.id}/${viewer.id}/${d.clientRequestId}/`)
+    if (bad) {
+      await removeUploads(uploads.map((u) => u.path))
+      return { error: bad }
+    }
+  }
   const needsApproval = community.requirePostApproval && !access.canModerate && !viewer.verified
   const post = await db.transaction(async (tx) => {
     const [row] = await tx
@@ -156,6 +168,7 @@ export async function createPost(_prev: ActionState, formData: FormData): Promis
       .returning({ id: communityPosts.id })
     if (!row) return null
     if (options.length) await tx.insert(pollOptions).values(options.map((label, i) => ({ postId: row.id, label, sortOrder: i })))
+    if (uploads.length) await tx.insert(postAttachments).values(uploads.map((u) => ({ postId: row.id, communityId: community.id, storagePath: u.path, fileName: u.name, fileType: u.type ?? null, fileSize: u.size })))
     return row
   })
   if (!post) return { success: 'Already posted.' }
@@ -166,7 +179,7 @@ export async function createPost(_prev: ActionState, formData: FormData): Promis
   } else if (d.type === 'announcement') {
     await db.execute(sql`
       insert into notifications (user_id, type, title, link, actor_id)
-      select user_id, 'announcement', ${`${community.name}: ${d.title}`}::text, ${link}::text, ${viewer.id}::uuid
+      select user_id, 'announcement'::community_notification_type, ${`${community.name}: ${d.title}`}::text, ${link}::text, ${viewer.id}::uuid
       from community_members
       where community_id = ${community.id} and status = 'active' and user_id <> ${viewer.id}`)
   }

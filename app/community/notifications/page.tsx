@@ -59,6 +59,7 @@ export default async function NotificationsPage({ searchParams }: { searchParams
             ))}
           </ul>
           <p className="mt-4 text-sm"><Link href="/community/appeals" className="font-medium text-brand-muted underline">Moderation decisions about you and appeals</Link></p>
+          <p className="mt-2 text-sm"><Link href="/community/settings" className="font-medium text-brand-muted underline">Email digest settings</Link></p>
         </section>
       </div>
     </SiteShell>

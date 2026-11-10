@@ -10,6 +10,7 @@ import { loadGroup } from '@/lib/community/authz'
 import { getComments, getPollData, getPost } from '@/lib/community/queries'
 import { removeComment } from '@/actions/community-manage'
 import { reportComment } from '@/actions/community'
+import { deleteOwnComment } from '@/actions/community-edit'
 import { groupHref } from '@/lib/community/constants'
 import { formatDate } from '@/lib/datetime'
 import { getViewer } from '@/lib/community/authz'
@@ -52,6 +53,7 @@ export default async function PostPage({ params }: Props) {
         <div className="mt-2 flex flex-wrap items-center gap-3">
           {access.canInteract && !reply && <ReplyToggle postId={post.id} parentId={c.id} />}
           {viewer && c.authorId !== viewer.id && <ActionButton action={reportComment.bind(null, c.id)} label="Report" promptLabel="What is wrong with this comment?" variant="link" />}
+          {viewer && c.authorId === viewer.id && <ActionButton action={deleteOwnComment.bind(null, c.id)} label="Delete" confirm="Delete your comment?" variant="link" className="!text-red-700" />}
           {access.canModerate && <ActionButton action={removeComment.bind(null, c.id)} label="Remove" promptLabel="Why is this being removed? The author will see this." variant="link" className="!text-red-700" />}
         </div>
       </div>

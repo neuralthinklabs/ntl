@@ -16,7 +16,7 @@ export default async function AdminCommunityPage() {
   return (
     <>
       <AdminHeader title="Community groups" description="Create and manage public groups, Atlas communities, project groups, learning communities and internal NTL workspaces." newHref="/admin/community/new" newLabel="New group" />
-      <p className="mb-5 text-sm"><Link href="/admin/community/moderation" className="font-medium text-brand-muted underline">Moderation: appeals, reports, people and logs</Link></p>
+      <p className="mb-5 flex flex-wrap gap-4 text-sm"><Link href="/admin/community/moderation" className="font-medium text-brand-muted underline">Moderation: appeals, reports, people and logs</Link><Link href="/admin/community/messages" className="font-medium text-brand-muted underline">Reported messages</Link></p>
       <div className="flex flex-col gap-3">
         {rows.map(({ c, members }) => (
           <Link key={c.id} href={`/admin/community/${c.id}`} className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">

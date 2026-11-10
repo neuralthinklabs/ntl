@@ -30,6 +30,8 @@ const accountLinks = [
   { href: '/contributions/mine', label: 'My pledges' },
   { href: '/tickets', label: 'My tickets' },
   { href: '/community/groups', label: 'My groups' },
+  { href: '/community/messages', label: 'Messages' },
+  { href: '/community/tasks', label: 'My tasks' },
   { href: '/community/notifications', label: 'Notifications' },
 ]
 

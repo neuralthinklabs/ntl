@@ -21,6 +21,7 @@ export const appealStatusEnum = pgEnum('appeal_status', ['pending', 'upheld', 'o
 export const notificationTypeEnum = pgEnum('community_notification_type', [
   'comment', 'reply', 'join_request', 'join_approved', 'announcement', 'post_pending', 'post_approved', 'post_removed',
   'warning', 'suspension', 'ban', 'appeal_decision', 'role_changed', 'report',
+  'message', 'task_assigned', 'task_update', 'meeting_scheduled', 'meeting_cancelled', 'meeting_reminder',
 ])
 
 export const communities = pgTable('communities', {
@@ -69,6 +70,7 @@ export const communityPosts = pgTable('community_posts', {
   status: postStatusEnum('status').notNull().default('published'),
   pinned: boolean('pinned').notNull().default(false),
   removedReason: text('removed_reason'),
+  editedAt: timestamp('edited_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })

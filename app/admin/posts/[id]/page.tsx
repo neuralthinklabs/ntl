@@ -1,14 +1,16 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { eq } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { stories } from '@/db/schema'
+import { collections, collectionStories } from '@/db/collections-schema'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { PostForm } from '@/components/admin/post-form'
 import { DeleteButton } from '@/components/admin/delete-button'
 import { deletePost } from '@/actions/admin/posts'
 
 export const metadata = { title: 'Edit post' }
+export const dynamic = 'force-dynamic'
 
 export default async function EditPostPage({
   params,
@@ -23,6 +25,10 @@ export default async function EditPostPage({
   const post = await db.query.stories.findFirst({ where: eq(stories.id, id) })
   if (!post) notFound()
   const live = !!post.publishedAt && post.publishedAt <= new Date()
+  const [cols, [member]] = await Promise.all([
+    db.select({ id: collections.id, title: collections.title, kind: collections.kind }).from(collections).orderBy(desc(collections.updatedAt)),
+    db.select().from(collectionStories).where(eq(collectionStories.storyId, id)).limit(1),
+  ])
 
   return (
     <>
@@ -36,6 +42,7 @@ export default async function EditPostPage({
         </p>
       )}
       <PostForm
+        collections={cols}
         initial={{
           id: post.id,
           title: post.title,
@@ -45,6 +52,9 @@ export default async function EditPostPage({
           body: post.body ?? '',
           coverImage: post.coverImage ?? '',
           ntldgSlug: post.ntldgSlug ?? '',
+          collectionId: member?.collectionId ?? '',
+          position: String(member?.position ?? 0),
+          issue: member?.issue ? String(member.issue) : '',
           published: live,
         }}
       />
