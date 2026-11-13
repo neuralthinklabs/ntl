@@ -11,11 +11,13 @@ import {
 import { checkRateLimit, recordAttempt } from '@/lib/rate-limit'
 import { getMembership, getViewer, guard } from '@/lib/community/authz'
 import { notify, notifyStaff } from '@/lib/community/notify'
+import { notifyMentions } from '@/lib/community/mentions'
 import { APPEALABLE, POST_TYPES, REACTION_KINDS, REPORT_REASONS, groupHref } from '@/lib/community/constants'
 import { postAttachments } from '@/db/collab-schema'
 import { COMMUNITY_MAX_FILES } from '@/lib/collab/constants'
 import { readUploads, removeUploads, verifyUploads } from '@/lib/collab/uploads'
 import type { ActionState } from './auth'
+import { actionBlockedMessage } from '@/lib/site-controls'
 
 const uuid = z.string().uuid()
 
@@ -106,6 +108,8 @@ const iso = (v?: string) => {
 }
 
 export async function createPost(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const closed = await actionBlockedMessage('/community')
+  if (closed) return { error: closed }
   const f = (k: string) => (formData.get(k) as string) || undefined
   const parsed = postSchema.safeParse({
     communityId: formData.get('communityId'),
@@ -183,6 +187,7 @@ export async function createPost(_prev: ActionState, formData: FormData): Promis
       from community_members
       where community_id = ${community.id} and status = 'active' and user_id <> ${viewer.id}`)
   }
+  if (!needsApproval) await notifyMentions({ text: `${d.title ?? ''} ${d.body}`, actor: viewer, community, link })
   refresh(community.slug, community.visibility)
   return { success: needsApproval ? 'Posted. A moderator will approve it before it appears.' : 'Posted.' }
 }
@@ -219,6 +224,7 @@ export async function addComment(postId: string, body: string, parentId?: string
   if (post.authorId) rows.push({ userId: post.authorId, type: 'comment' as const, title: `${viewer.name} commented on "${title}"`, body: p.data.body, link, actorId: viewer.id })
   if (parentAuthor && parentAuthor !== post.authorId) rows.push({ userId: parentAuthor, type: 'reply' as const, title: `${viewer.name} replied to your comment`, body: p.data.body, link, actorId: viewer.id })
   await notify(rows)
+  await notifyMentions({ text: p.data.body, actor: viewer, community, link })
   revalidatePath(link)
   revalidatePath('/community')
   revalidatePath(groupHref(community))

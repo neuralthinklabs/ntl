@@ -22,6 +22,7 @@ import { checkAchievements } from '@/lib/achievements'
 import { goalIndexBySlug } from '@/lib/ntldgs'
 import { checkRateLimit, recordAttempt } from '@/lib/rate-limit'
 import type { ActionState } from './auth'
+import { actionBlockedMessage } from '@/lib/site-controls'
 
 const BUCKET = 'problem-attachments'
 const site = () => process.env.NEXT_PUBLIC_SITE_URL ?? ''
@@ -65,6 +66,8 @@ async function inspectObject(
 }
 
 export async function submitProblem(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const closed = await actionBlockedMessage('/problems')
+  if (closed) return { error: closed }
   const supabase = await createClient()
   const {
     data: { user },

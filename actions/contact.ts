@@ -8,6 +8,7 @@ import { sendEmail, contactAckEmail, contactNotifyEmail } from '@/lib/email'
 import { checkRateLimit, recordAttempt, ipIdentifier } from '@/lib/rate-limit'
 import { getClientIp as clientIp } from '@/lib/ip'
 import type { ActionState } from './auth'
+import { actionBlockedMessage } from '@/lib/site-controls'
 
 const contactSchema = z.object({
   name: z.string().trim().min(1, 'Please enter your name.').max(120),
@@ -21,6 +22,8 @@ const contactSchema = z.object({
 const THANKS = "Thanks - we'll be in touch soon."
 
 export async function submitContact(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const closed = await actionBlockedMessage('/contact')
+  if (closed) return { error: closed }
   const parsed = contactSchema.safeParse({
     name: formData.get('name'),
     email: formData.get('email'),

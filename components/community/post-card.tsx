@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { BadgeCheck, CalendarDays, ExternalLink, MapPin, Pin } from 'lucide-react'
 import { ReactionBar, Poll } from './post-actions'
 import { ActionButton } from './action-button'
+import { MentionText } from './mention-text'
 import { PostAttachments } from './post-attachments'
 import { PostAuthorTools } from './post-author-tools'
 import { removePost, restorePost, setPinned, approvePost } from '@/actions/community-manage'
@@ -70,7 +71,7 @@ export function PostCard({
         )}
       </p>
 
-      <p className={cn('mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-700', !detail && 'line-clamp-6')}>{post.body}</p>
+      <p className={cn('mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-700', !detail && 'line-clamp-6')}><MentionText text={post.body} /></p>
 
       {post.attachments > 0 && post.status !== 'removed' && <PostAttachments postId={post.id} />}
 

@@ -53,6 +53,11 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
             <Pager page={page} totalPages={totalPages(total, DEFAULT_PAGE_SIZE)} basePath={type ? `/community?type=${type}` : '/community'} />
           </div>
           <aside className="flex flex-col gap-3 text-sm">
+            <form action="/community/search" role="search" className="flex gap-2">
+              <label htmlFor="community-search" className="sr-only">Search the community</label>
+              <input id="community-search" name="q" placeholder="Search posts, groups, people" className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-brand-muted focus:ring-2 focus:ring-brand/30" />
+              <button type="submit" className="rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-white">Go</button>
+            </form>
             <Link href="/community/discover" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 font-medium text-ink shadow-sm hover:shadow-md"><Compass className="size-5 text-brand-muted" /> Discover communities</Link>
             <Link href="/community/groups" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 font-medium text-ink shadow-sm hover:shadow-md"><Users className="size-5 text-brand-muted" /> My groups</Link>
             {viewer && <Link href="/community/notifications" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 font-medium text-ink shadow-sm hover:shadow-md"><Bell className="size-5 text-brand-muted" /> Notifications</Link>}

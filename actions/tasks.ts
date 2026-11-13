@@ -105,7 +105,7 @@ export async function updateTaskDetails(taskId: string, input: { title: string; 
     .object({ title: z.string().trim().min(3, 'Give the task a title (3+ characters).').max(200), description: z.string().trim().max(3000), priority: z.enum(TASK_PRIORITIES), dueDate: z.string() })
     .safeParse(input)
   if (!p.success) return { error: p.error.issues[0]?.message ?? 'Invalid input.' }
-  await db.update(communityTasks).set({ title: p.data.title, description: p.data.description || null, priority: p.data.priority, dueDate: toDate(p.data.dueDate), updatedAt: new Date() }).where(eq(communityTasks.id, t.id))
+  await db.update(communityTasks).set({ title: p.data.title, description: p.data.description || null, priority: p.data.priority, dueDate: toDate(p.data.dueDate), reminderSentAt: null, updatedAt: new Date() }).where(eq(communityTasks.id, t.id))
   refresh(g.community)
   return { success: 'Saved.' }
 }

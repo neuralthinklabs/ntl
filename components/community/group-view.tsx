@@ -19,6 +19,8 @@ import { cn } from '@/lib/utils'
 import { MeetingsTab } from './meetings-tab'
 import { TasksTab } from './tasks-tab'
 import { hasTasks } from '@/lib/collab/constants'
+import { ResourcesTab } from './resources-tab'
+import { LinkedCampaign } from './linked-campaign'
 
 type SP = { tab?: string; type?: string; page?: string; mine?: string }
 const pill = (on: boolean) => cn('rounded-full px-4 py-1.5 text-sm font-medium', on ? 'bg-ink text-white' : 'bg-white text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50')
@@ -37,6 +39,7 @@ export async function GroupView({ slug, internal, sp }: { slug: string; internal
     : sp.tab === 'moderation' && access.canModerate ? 'moderation'
     : sp.tab === 'meetings' && member ? 'meetings'
     : sp.tab === 'tasks' && member && hasTasks(c.kind) ? 'tasks'
+    : sp.tab === 'resources' ? 'resources'
     : 'discussion'
   const { page } = parsePage(sp)
   const type = POST_TYPES.find((t) => t === sp.type)
@@ -98,6 +101,7 @@ export async function GroupView({ slug, internal, sp }: { slug: string; internal
           {(access.isMember || viewer?.isAdmin) && <Link href={qs({ tab: 'members' })} className={pill(tab === 'members')}>Members</Link>}
           {member && <Link href={qs({ tab: 'meetings' })} className={pill(tab === 'meetings')}>Meetings</Link>}
           {member && hasTasks(c.kind) && <Link href={qs({ tab: 'tasks' })} className={pill(tab === 'tasks')}>Tasks</Link>}
+          <Link href={qs({ tab: 'resources' })} className={pill(tab === 'resources')}>Resources</Link>
           {access.canModerate && <Link href={qs({ tab: 'moderation' })} className={pill(tab === 'moderation')}>Moderation</Link>}
         </nav>
 
@@ -107,7 +111,7 @@ export async function GroupView({ slug, internal, sp }: { slug: string; internal
             {leaders.map((l, i) => (
               <span key={l.userId}>{i > 0 && ', '}<Link href={`/community/members/${l.ntlId}`} className="text-brand-muted underline">{l.name}</Link></span>
             ))}
-            . Shared task boards arrive in a later phase; use project updates and discussions for now.
+            . Tasks, meetings and resources are in the tabs above.
           </p>
         )}
 
@@ -132,6 +136,7 @@ export async function GroupView({ slug, internal, sp }: { slug: string; internal
                 <p className="mt-2 whitespace-pre-wrap text-slate-700">{c.description || 'No description yet.'}</p>
                 <p className="mt-3 text-xs text-slate-600">{KIND_LABEL[c.kind]} · {VISIBILITY_LABEL[c.visibility]} · created {formatDate(c.createdAt)}</p>
               </div>
+              {c.kind === 'project' && c.goalId && <LinkedCampaign goalId={c.goalId} />}
               {access.role && <p className="rounded-2xl bg-brand/5 p-4 text-xs text-slate-700 ring-1 ring-inset ring-brand/15">Your role here: <strong className="text-ink">{ROLE_LABEL[access.role]}</strong>{viewer?.isAdmin && ' · NTL admin'}</p>}
             </aside>
           </div>
@@ -189,6 +194,7 @@ export async function GroupView({ slug, internal, sp }: { slug: string; internal
 
         {tab === 'meetings' && <MeetingsTab community={c} viewer={viewer} access={access} />}
         {tab === 'tasks' && <TasksTab community={c} viewer={viewer} access={access} mine={sp.mine === '1'} />}
+        {tab === 'resources' && <ResourcesTab community={c} access={access} />}
 
         {tab === 'moderation' && (
           <section className="mt-8 flex flex-col gap-8">

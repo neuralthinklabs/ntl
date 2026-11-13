@@ -6,6 +6,7 @@ import { SiteShell } from '@/components/site/site-shell'
 import { PostCard } from '@/components/community/post-card'
 import { CommentForm, ReplyToggle } from '@/components/community/comment-form'
 import { ActionButton } from '@/components/community/action-button'
+import { MentionText } from '@/components/community/mention-text'
 import { loadGroup } from '@/lib/community/authz'
 import { getComments, getPollData, getPost } from '@/lib/community/queries'
 import { removeComment } from '@/actions/community-manage'
@@ -49,7 +50,7 @@ export default async function PostPage({ params }: Props) {
         <p className="text-xs text-slate-600">
           {c.authorNtlId ? <Link href={`/community/members/${c.authorNtlId}`} className="font-medium text-ink hover:underline">{c.authorName}</Link> : c.authorName} · {formatDate(c.createdAt)}
         </p>
-        <p className="mt-1.5 whitespace-pre-wrap text-slate-800">{c.body}</p>
+        <p className="mt-1.5 whitespace-pre-wrap text-slate-800"><MentionText text={c.body} /></p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           {access.canInteract && !reply && <ReplyToggle postId={post.id} parentId={c.id} />}
           {viewer && c.authorId !== viewer.id && <ActionButton action={reportComment.bind(null, c.id)} label="Report" promptLabel="What is wrong with this comment?" variant="link" />}

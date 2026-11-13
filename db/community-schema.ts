@@ -22,6 +22,7 @@ export const notificationTypeEnum = pgEnum('community_notification_type', [
   'comment', 'reply', 'join_request', 'join_approved', 'announcement', 'post_pending', 'post_approved', 'post_removed',
   'warning', 'suspension', 'ban', 'appeal_decision', 'role_changed', 'report',
   'message', 'task_assigned', 'task_update', 'meeting_scheduled', 'meeting_cancelled', 'meeting_reminder',
+  'mention', 'task_due',
 ])
 
 export const communities = pgTable('communities', {

@@ -10,6 +10,7 @@ import { sendEmail, escapeHtml } from '@/lib/email'
 import { checkRateLimit, recordAttempt } from '@/lib/rate-limit'
 import { goalIndexBySlug } from '@/lib/ntldgs'
 import type { ActionState } from './auth'
+import { actionBlockedMessage } from '@/lib/site-controls'
 
 const opt = (max: number) => z.string().trim().max(max).optional()
 
@@ -32,6 +33,8 @@ const schema = z.object({
 })
 
 export async function submitVolunteer(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const closed = await actionBlockedMessage('/volunteer')
+  if (closed) return { error: closed }
   const supabase = await createClient()
   const {
     data: { user },

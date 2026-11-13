@@ -93,6 +93,7 @@ export const communityTasks = pgTable('community_tasks', {
   priority: text('priority', { enum: ['low', 'normal', 'high'] }).notNull().default('normal'),
   dueDate: timestamp('due_date', { withTimezone: true }),
   completedAt: timestamp('completed_at', { withTimezone: true }),
+  reminderSentAt: timestamp('reminder_sent_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })

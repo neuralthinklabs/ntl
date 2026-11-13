@@ -10,6 +10,7 @@ import { sendEmail, pledgeReceivedEmail, pledgeAdminNotifyEmail } from '@/lib/em
 import { money } from '@/lib/format'
 import { checkRateLimit, recordAttempt } from '@/lib/rate-limit'
 import type { ActionState } from './auth'
+import { actionBlockedMessage } from '@/lib/site-controls'
 
 // A pledge is only a promise. The public progress bar changes ONLY when an
 // admin confirms the payment (actions/admin/contributions.ts).
@@ -26,6 +27,8 @@ const pledgeSchema = z.object({
 })
 
 export async function recordContribution(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const closed = await actionBlockedMessage('/goals', '/support')
+  if (closed) return { error: closed }
   const supabase = await createClient()
   const {
     data: { user },
